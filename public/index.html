@@ -3,328 +3,564 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project C.M.S.R — Volunteer Coordination API</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-hover: #0ea5e9;
-      --accent-glow: rgba(56, 189, 248, 0.15);
-      --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.1);
-      --badge-bg: #22354c;
-      --badge-text: #7dd3fc;
-      --code-bg: #090d16;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text-main);
-      line-height: 1.6;
-      padding: 2rem 1rem;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .container {
-      max-width: 900px;
-      width: 100%;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background-color: var(--success-bg);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-
-    .pulse {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--success);
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      }
-    }
-
-    h1 {
-      font-size: 2.25rem;
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #f8fafc 40%, #38bdf8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .subtitle {
-      font-size: 1.15rem;
-      color: var(--text-muted);
-      max-width: 650px;
-      margin: 0 auto 1.5rem auto;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: #0284c7;
-      color: #ffffff;
-      border: 1px solid #38bdf8;
-    }
-
-    .btn-primary:hover {
-      background: #0369a1;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: var(--card-bg);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
-    }
-
-    .btn-secondary:hover {
-      background: #273549;
-      transform: translateY(-1px);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-
-    .card h3 {
-      font-size: 1.1rem;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .api-section {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.75rem;
-      margin-bottom: 2rem;
-    }
-
-    .api-section h2 {
-      font-size: 1.35rem;
-      margin-bottom: 1rem;
-      color: var(--text-main);
-    }
-
-    .endpoint-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .endpoint {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: var(--code-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.88rem;
-      overflow-x: auto;
-    }
-
-    .method {
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 0.75rem;
-    }
-
-    .method-get { background: #065f46; color: #6ee7b7; }
-    .method-post { background: #1e40af; color: #93c5fd; }
-    .method-put { background: #854d0e; color: #fde047; }
-
-    .path {
-      color: #f1f5f9;
-      font-weight: 600;
-    }
-
-    .desc {
-      color: var(--text-muted);
-      margin-left: auto;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 0.82rem;
-    }
-
-    footer {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: auto;
-      padding-top: 2rem;
-    }
-
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <title>Project C.M.S.R — Community Mentorship &amp; Safe Route Coordinator</title>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="status-badge">
-        <span class="pulse"></span>
-        API Online & Ready
-      </div>
-      <h1>Project C.M.S.R</h1>
-      <p class="subtitle">
-        Community Mentorship &amp; Safe Route Volunteer Coordinator. A platform connecting community volunteers with local youth centers and schools.
-      </p>
-      <div class="btn-group">
-        <a href="/health" class="btn btn-primary" target="_blank">
-          <span>🩺</span> View /health Status
-        </a>
-        <a href="https://github.com/Katlyn627/Project-C.M.S.R" class="btn btn-secondary" target="_blank" rel="noopener">
-          <span>📂</span> GitHub Repository
-        </a>
-      </div>
-    </header>
 
-    <div class="grid">
-      <div class="card">
-        <h3><span>🚶‍♀️</span> Safe Route Rosters</h3>
-        <p>Manage weekly walking-bus routes, after-school tutoring, and mentorship sessions with volunteer capacity enforcement.</p>
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-logo-badge">CMSR</div>
+        <div class="brand-title-group">
+          <h1>Project C.M.S.R.</h1>
+          <p>Community Mentorship &amp; Safe Route Volunteer Coordinator</p>
+        </div>
       </div>
-      <div class="card">
-        <h3><span>🛡️</span> Safeguarding</h3>
-        <p>Secure incident logging with AES-256-GCM encryption at rest, role-based decryption, and automated coordinator escalation alerts.</p>
-      </div>
-      <div class="card">
-        <h3><span>📱</span> SMS &amp; USSD Gateway</h3>
-        <p>Automated shift reminders, safe arrival confirmations for parents, and simulated USSD callback sessions for low-connectivity regions.</p>
+      <div class="header-actions">
+        <div class="health-pill" id="healthStatus">
+          <span class="pulse-dot"></span> Checking API...
+        </div>
+        <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
+          📂 GitHub
+        </a>
       </div>
     </div>
+  </header>
 
-    <div class="api-section">
-      <h2>Core API Endpoints</h2>
-      <div class="endpoint-list">
-        <div class="endpoint">
-          <span class="method method-get">GET</span>
-          <span class="path">/health</span>
-          <span class="desc">Service health status</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-post">POST</span>
-          <span class="path">/auth/register</span>
-          <span class="desc">Register user (admin, coordinator, volunteer, viewer)</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-post">POST</span>
-          <span class="path">/auth/login</span>
-          <span class="desc">Authenticate user &amp; receive JWT</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-get">GET</span>
-          <span class="path">/volunteers</span>
-          <span class="desc">List volunteer profiles (coordinator+)</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-get">GET</span>
-          <span class="path">/shifts</span>
-          <span class="desc">List walking bus and mentorship shifts</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-post">POST</span>
-          <span class="path">/incidents</span>
-          <span class="desc">Report safeguarding incident (AES-256 encrypted)</span>
-        </div>
-        <div class="endpoint">
-          <span class="method method-post">POST</span>
-          <span class="path">/sms/safe-arrival</span>
-          <span class="desc">Send arrival notification to parents</span>
-        </div>
+  <!-- User & Portfolio Demo Bar -->
+  <div class="user-bar">
+    <div class="user-bar-inner">
+      <div class="current-user-info" id="currentUserDisplay">
+        <span>Loading session...</span>
+      </div>
+      <div class="demo-selector-group">
+        <span class="demo-label">Demo Role Switcher:</span>
+        <button class="btn btn-sm btn-outline" onclick="quickLogin('coordinator')" title="Coordinator permissions: manage routes, shifts, and view decrypted incident logs">
+          🛡️ Coordinator
+        </button>
+        <button class="btn btn-sm btn-outline" onclick="quickLogin('volunteer')" title="Volunteer permissions: report incidents, view assignments">
+          🚶 Volunteer
+        </button>
+        <button class="btn btn-sm btn-outline" onclick="quickLogin('admin')" title="Admin: full system clearance">
+          ⚡ Admin
+        </button>
+        <button class="btn btn-sm btn-emerald" onclick="seedDemoData()" title="Populate realistic routes, shifts, volunteers, and sample incidents for evaluation">
+          🌱 Seed Demo Data
+        </button>
+        <button class="btn btn-sm btn-outline" onclick="logout()" title="Reset session">
+          🔄 Reset
+        </button>
       </div>
     </div>
-
-    <footer>
-      <p>Project C.M.S.R &bull; Hosted on <a href="https://render.com" target="_blank" rel="noopener">Render</a> &bull; <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener">View Source on GitHub</a></p>
-    </footer>
   </div>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-tabs-nav">
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+        📊 Overview
+      </button>
+      <button class="tab-btn" data-tab="shifts" onclick="switchTab('shifts')">
+        🚶‍♀️ Safe Routes &amp; Shifts
+      </button>
+      <button class="tab-btn" data-tab="incidents" onclick="switchTab('incidents')">
+        🛡️ Safeguarding Desk
+      </button>
+      <button class="tab-btn" data-tab="ussd" onclick="switchTab('ussd')">
+        📱 USSD &amp; SMS Terminal
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main View Container -->
+  <main class="app-main">
+
+    <!-- TAB 1: DASHBOARD OVERVIEW -->
+    <div id="tab-dashboard" class="tab-pane active">
+      
+      <!-- Metrics Counters -->
+      <div class="metrics-grid">
+        <div class="metric-card cyan">
+          <div class="metric-header">
+            <span class="metric-label">Active Volunteers</span>
+            <span class="metric-icon">👥</span>
+          </div>
+          <div class="metric-value" id="metricVolunteers">0</div>
+          <div class="metric-footer">Vetted chaperones &amp; tutors</div>
+        </div>
+        <div class="metric-card emerald">
+          <div class="metric-header">
+            <span class="metric-label">Scheduled Shifts</span>
+            <span class="metric-icon">📅</span>
+          </div>
+          <div class="metric-value" id="metricShifts">0</div>
+          <div class="metric-footer">Walking bus &amp; mentorship</div>
+        </div>
+        <div class="metric-card rose">
+          <div class="metric-header">
+            <span class="metric-label">Safeguarding Reports</span>
+            <span class="metric-icon">🛡️</span>
+          </div>
+          <div class="metric-value" id="metricIncidents">0</div>
+          <div class="metric-footer">AES-256-GCM encrypted</div>
+        </div>
+        <div class="metric-card indigo">
+          <div class="metric-header">
+            <span class="metric-label">Dispatched SMS</span>
+            <span class="metric-icon">📱</span>
+          </div>
+          <div class="metric-value" id="metricSms">0</div>
+          <div class="metric-footer">Parent arrival &amp; shift alerts</div>
+        </div>
+      </div>
+
+      <!-- Overview Info Cards -->
+      <div class="content-card">
+        <div class="section-header">
+          <h2 class="section-title"><span>🌍</span> Mission &amp; Safeguarding Architecture</h2>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1rem">
+          Project C.M.S.R is designed to protect vulnerable adolescent students (particularly young girls) commuting to secondary schools and after-school youth centers across low-connectivity regions. The platform coordinates walking-bus escorts, enforces safety ratios, and securely handles incident escalations.
+        </p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem">
+          <div style="background:var(--bg-input);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">
+            <h4 style="color:var(--brand-cyan);font-size:0.95rem;margin-bottom:0.35rem">🔒 Zero-Plaintext Child Data</h4>
+            <p style="font-size:0.82rem;color:var(--text-muted)">All incident descriptions and involved-party identifiers are encrypted at rest using authenticated AES-256-GCM cryptography. Only verified coordinators and admins possess role-based decryption clearance.</p>
+          </div>
+          <div style="background:var(--bg-input);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">
+            <h4 style="color:var(--badge-emerald);font-size:0.95rem;margin-bottom:0.35rem">📡 Low-Bandwidth SMS &amp; USSD</h4>
+            <p style="font-size:0.82rem;color:var(--text-muted)">Designed for field environments with minimal cellular data. Volunteers receive automated shift notifications and can confirm attendance or report issues via simulated USSD callback sessions.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Shifts Section -->
+      <div class="content-card">
+        <div class="section-header">
+          <h3 class="section-title"><span>🚶‍♀️</span> Active Shift Rosters</h3>
+          <button class="btn btn-sm btn-primary" onclick="switchTab('shifts')">+ Manage Roster</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Corridor / Route</th>
+                <th>Shift Type</th>
+                <th>Schedule</th>
+                <th>Capacity</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="recentShiftsTbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading shifts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Incidents Section -->
+      <div class="content-card">
+        <div class="section-header">
+          <h3 class="section-title"><span>🛡️</span> Recent Safeguarding Incidents</h3>
+          <button class="btn btn-sm btn-outline" onclick="switchTab('incidents')">Open Incident Desk</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Severity</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="recentIncidentsTbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading incidents...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: SHIFT ROSTERS & ROUTES -->
+    <div id="tab-shifts" class="tab-pane">
+      
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;margin-bottom:1.5rem">
+        
+        <!-- Safe Route Directory -->
+        <div class="content-card" style="margin-bottom:0">
+          <div class="section-header">
+            <h3 class="section-title"><span>🗺️</span> Safe Walking Corridors</h3>
+          </div>
+          <div id="routesContainer" style="max-height:360px;overflow-y:auto;padding-right:0.5rem">
+            <p style="color:var(--text-muted);font-size:0.85rem">Loading routes...</p>
+          </div>
+          
+          <hr style="border:none;border-top:1px solid var(--border-subtle);margin:1.25rem 0" />
+          
+          <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:var(--text-primary)">+ Register New Safe Route</h4>
+          <form id="createRouteForm" onsubmit="handleCreateRoute(event)">
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Route Corridor Name *</label>
+              <input type="text" id="routeName" class="form-control" placeholder="e.g. Route 3: West Ward to Community High" required />
+            </div>
+            <div class="form-grid" style="margin-bottom:0.75rem">
+              <div class="form-group">
+                <label>Start Point *</label>
+                <input type="text" id="routeStart" class="form-control" placeholder="Assembly point" required />
+              </div>
+              <div class="form-group">
+                <label>End Point *</label>
+                <input type="text" id="routeEnd" class="form-control" placeholder="School/Center gate" required />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.85rem">
+              <label>Safety Notes &amp; Checkpoints</label>
+              <input type="text" id="routeDesc" class="form-control" placeholder="Well-lit path along main avenue with 2 chaperones" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Create Safe Route</button>
+          </form>
+        </div>
+
+        <!-- Schedule New Shift Form -->
+        <div class="content-card" style="margin-bottom:0">
+          <div class="section-header">
+            <h3 class="section-title"><span>➕</span> Schedule Volunteer Shift</h3>
+          </div>
+          <form id="createShiftForm" onsubmit="handleCreateShift(event)">
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Assigned Walking Route</label>
+              <select id="shiftRouteSelect" class="form-control">
+                <option value="">-- Select Walking Route --</option>
+              </select>
+            </div>
+            <div class="form-grid" style="margin-bottom:0.75rem">
+              <div class="form-group">
+                <label>Shift Type *</label>
+                <select id="shiftType" class="form-control" required>
+                  <option value="walking_bus">Walking Bus Escort</option>
+                  <option value="tutoring">After-school Tutoring</option>
+                  <option value="mentorship">Mentorship Session</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Max Volunteers *</label>
+                <input type="number" id="shiftMaxVolunteers" class="form-control" value="2" min="1" max="10" required />
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:0.75rem">
+              <div class="form-group">
+                <label>Date *</label>
+                <input type="date" id="shiftDate" class="form-control" required />
+              </div>
+              <div class="form-group">
+                <label>Start Time *</label>
+                <input type="time" id="shiftStart" class="form-control" value="07:00" required />
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:0.75rem">
+              <div class="form-group">
+                <label>End Time *</label>
+                <input type="time" id="shiftEnd" class="form-control" value="08:30" required />
+              </div>
+              <div class="form-group">
+                <label>Operational Notes</label>
+                <input type="text" id="shiftNotes" class="form-control" placeholder="Special supervision requirements" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-emerald" style="width:100%">Schedule Shift</button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Full Scheduled Shifts Table -->
+      <div class="content-card">
+        <div class="section-header">
+          <h3 class="section-title"><span>📋</span> Comprehensive Shift Schedule</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Corridor / Route</th>
+                <th>Type</th>
+                <th>Schedule</th>
+                <th>Capacity</th>
+                <th>Notes</th>
+                <th>Assignment</th>
+              </tr>
+            </thead>
+            <tbody id="shiftsFullTbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading shifts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Verified Volunteer Roster -->
+      <div class="content-card">
+        <div class="section-header">
+          <h3 class="section-title"><span>👥</span> Volunteer Staff Roster</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Volunteer Name</th>
+                <th>Phone Number</th>
+                <th>Skills &amp; Roles</th>
+                <th>Availability</th>
+                <th>Vetting Status</th>
+                <th>Direct SMS Alert</th>
+              </tr>
+            </thead>
+            <tbody id="volunteersTbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading volunteers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: SAFEGUARDING & INCIDENT DESK -->
+    <div id="tab-incidents" class="tab-pane">
+
+      <!-- Encryption Notice -->
+      <div class="enc-notice-banner">
+        <span class="enc-icon">🔐</span>
+        <div>
+          <strong>AES-256-GCM Child Protection Safeguarding Standard</strong><br />
+          All reported incident descriptions and involved-party identifiers are cryptographically encrypted before database write. Only verified Coordinators and Admins possess the key derivation clearance to decrypt and inspect details.
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(340px, 420px) 1fr;gap:1.5rem;align-items:start">
+        
+        <!-- Report Incident Form -->
+        <div class="content-card">
+          <div class="section-header">
+            <h3 class="section-title"><span>⚠️</span> Report Incident</h3>
+          </div>
+          <form id="reportIncidentForm" onsubmit="handleReportIncident(event)">
+            <div class="form-grid" style="margin-bottom:0.75rem">
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="incType" class="form-control" required>
+                  <option value="suspicious_activity">Suspicious Activity</option>
+                  <option value="route_hazard">Route Hazard / Blockage</option>
+                  <option value="harassment">Harassment / Intimidation</option>
+                  <option value="missing_student">Missing Student Alert</option>
+                  <option value="medical_emergency">Medical Emergency</option>
+                  <option value="other">Other Incident</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Severity Level *</label>
+                <select id="incSeverity" class="form-control" required>
+                  <option value="low">Low (Documentation)</option>
+                  <option value="medium" selected>Medium (Action needed)</option>
+                  <option value="high">High (Immediate SMS escalation)</option>
+                  <option value="critical">Critical (Emergency lock)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Location / Checkpoint</label>
+              <input type="text" id="incLocation" class="form-control" placeholder="e.g. Route 1 Footbridge, Checkpoint B" />
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Involved Parties (Encrypted at rest)</label>
+              <input type="text" id="incParties" class="form-control" placeholder="Names, vehicle license plates, descriptions" />
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Incident Description (Encrypted at rest) *</label>
+              <textarea id="incDesc" class="form-control" placeholder="Provide factual details of the incident..." required></textarea>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+              <input type="checkbox" id="incReferral" style="width:16px;height:16px" />
+              <label for="incReferral" style="font-size:0.85rem;color:var(--text-secondary)">Flag for official Child Protection / Safeguarding Referral</label>
+            </div>
+            <button type="submit" class="btn btn-rose" style="width:100%">Submit Encrypted Report</button>
+          </form>
+        </div>
+
+        <!-- Incident History Log -->
+        <div class="content-card">
+          <div class="section-header">
+            <h3 class="section-title"><span>🛡️</span> Safeguarding Log &amp; Case Reviews</h3>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Severity</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Incident Details (Decrypted for Coord+)</th>
+                  <th>Status Workflow</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="incidentsFullTbody">
+                <tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Loading incidents...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 4: USSD & SMS SIMULATOR -->
+    <div id="tab-ussd" class="tab-pane">
+
+      <div class="ussd-simulator-grid">
+        
+        <!-- Interactive USSD Feature Phone Simulator -->
+        <div>
+          <h3 class="section-title" style="margin-bottom:0.85rem"><span>📲</span> Interactive USSD Session Simulator</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+            Simulates an offline volunteer dialing <code>*384*100#</code> on a basic feature phone in rural or low-bandwidth environments.
+          </p>
+
+          <div class="phone-mockup">
+            <div class="phone-speaker"></div>
+            
+            <div class="phone-screen">
+              <div id="ussdScreenContent" class="ussd-content">CON Welcome to CMSR Volunteer Dispatch
+1. Confirm Shift Assignment
+2. Report Safe Route Arrival
+3. Report Urgent Issue
+4. Contact Coordinator</div>
+              
+              <div class="ussd-input-row" id="ussdInputRow">
+                <input type="text" id="ussdInput" class="ussd-input" placeholder="Type option..." />
+                <button class="btn btn-sm btn-primary" onclick="submitUssdInput()">SEND</button>
+              </div>
+            </div>
+
+            <!-- Dial Keypad -->
+            <div class="phone-keypad">
+              <button class="keypad-btn" onclick="ussdKeypadPress('1')">1</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('2')">2</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('3')">3</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('4')">4</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('5')">5</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('6')">6</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('7')">7</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('8')">8</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('9')">9</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('*')">*</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('0')">0</button>
+              <button class="keypad-btn" onclick="ussdKeypadPress('#')">#</button>
+            </div>
+
+            <div class="keypad-action-row">
+              <button class="btn btn-outline" style="flex:1" onclick="resetUssdSession()">🔄 End / Reset Call</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Parent Safe Arrival SMS Trigger + SMS Outbox -->
+        <div>
+          <!-- Safe Arrival Trigger Form -->
+          <div class="content-card">
+            <div class="section-header">
+              <h3 class="section-title"><span>📩</span> Parent Safe-Arrival SMS Dispatcher</h3>
+            </div>
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem">
+              Dispatches automated safe arrival SMS notifications to parents when walking buses deliver students safely to school gates.
+            </p>
+            <form id="safeArrivalForm" onsubmit="handleSafeArrivalSMS(event)">
+              <div class="form-grid" style="margin-bottom:0.75rem">
+                <div class="form-group">
+                  <label>Parent Phone Number *</label>
+                  <input type="text" id="arrivalPhone" class="form-control" value="+256712345678" required />
+                </div>
+                <div class="form-group">
+                  <label>Student / Child Name *</label>
+                  <input type="text" id="arrivalChildName" class="form-control" value="Amara Okafor" required />
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0.85rem">
+                <label>Arrival Location / Institution *</label>
+                <input type="text" id="arrivalLocation" class="form-control" value="St. Mary Girls High School" required />
+              </div>
+              <button type="submit" class="btn btn-emerald">Dispatch Safe Arrival SMS</button>
+            </form>
+          </div>
+
+          <!-- SMS Outbox Log -->
+          <div class="content-card">
+            <div class="section-header">
+              <h3 class="section-title"><span>📡</span> Live SMS Outbox &amp; Transmission Ledger</h3>
+              <button class="btn btn-sm btn-outline" onclick="loadUssdView()">Refresh Outbox</button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Recipient</th>
+                    <th>Message Text</th>
+                    <th>Trigger</th>
+                    <th>Gateway Status</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody id="smsOutboxTbody">
+                  <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading SMS logs...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Volunteer Assignment Modal -->
+  <div id="assignModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size:1.15rem;color:var(--text-primary)">Assign Volunteer to Shift Roster</h3>
+        <button class="modal-close" onclick="closeAssignModal()">&times;</button>
+      </div>
+      <form onsubmit="handleAssignVolunteer(event)">
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label>Select Verified Volunteer *</label>
+          <select id="assignVolunteerSelect" class="form-control" required>
+            <option value="">-- Loading volunteers --</option>
+          </select>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem">
+          <button type="button" class="btn btn-outline" onclick="closeAssignModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <p>Project C.M.S.R &bull; Community Mentorship &amp; Safe Route Coordinator &bull; Deployed on <a href="https://render.com" target="_blank" rel="noopener">Render</a> &bull; <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener">GitHub Repository</a></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
 </body>
 </html>

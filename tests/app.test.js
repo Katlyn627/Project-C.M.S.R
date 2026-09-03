@@ -281,3 +281,26 @@ describe('SMS / USSD', () => {
     expect(Array.isArray(res.body)).toBe(true);
   });
 });
+
+describe('Demo & Seed', () => {
+  it('GET /api/demo/status returns database counts', async () => {
+    const res = await request(app).get('/api/demo/status');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.counts).toBeDefined();
+  });
+
+  it('POST /api/demo/seed seeds demo data', async () => {
+    const res = await request(app).post('/api/demo/seed');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('POST /api/demo/quick-login returns JWT token for coordinator', async () => {
+    const res = await request(app).post('/api/demo/quick-login').send({ role: 'coordinator' });
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBeDefined();
+    expect(res.body.user.role).toBe('coordinator');
+  });
+});
+
