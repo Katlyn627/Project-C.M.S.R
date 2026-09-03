@@ -145,59 +145,74 @@ function seedDatabase(db) {
 
 // GET /api/demo/status
 router.get('/status', (req, res) => {
-  const db = getDb();
-  const counts = {
-    users: db.prepare('SELECT COUNT(*) as count FROM users').get().count,
-    volunteers: db.prepare('SELECT COUNT(*) as count FROM volunteers').get().count,
-    routes: db.prepare('SELECT COUNT(*) as count FROM routes').get().count,
-    shifts: db.prepare('SELECT COUNT(*) as count FROM shifts').get().count,
-    incidents: db.prepare('SELECT COUNT(*) as count FROM incidents').get().count,
-    sms: db.prepare('SELECT COUNT(*) as count FROM sms_notifications').get().count,
-  };
-  res.json({
-    status: 'ok',
-    seeded: counts.routes > 0,
-    counts,
-    demoAccounts: DEMO_USERS.map(u => ({ username: u.username, role: u.role, full_name: u.full_name })),
-  });
+  try {
+    const db = getDb();
+    const counts = {
+      users: db.prepare('SELECT COUNT(*) as count FROM users').get().count,
+      volunteers: db.prepare('SELECT COUNT(*) as count FROM volunteers').get().count,
+      routes: db.prepare('SELECT COUNT(*) as count FROM routes').get().count,
+      shifts: db.prepare('SELECT COUNT(*) as count FROM shifts').get().count,
+      incidents: db.prepare('SELECT COUNT(*) as count FROM incidents').get().count,
+      sms: db.prepare('SELECT COUNT(*) as count FROM sms_notifications').get().count,
+    };
+    res.json({
+      status: 'ok',
+      seeded: counts.routes > 0,
+      counts,
+      demoAccounts: DEMO_USERS.map(u => ({ username: u.username, role: u.role, full_name: u.full_name })),
+    });
+  } catch (err) {
+    console.error('DEMO STATUS ERROR:', err);
+    res.status(500).json({ error: err.message, status: 'error' });
+  }
 });
 
 // POST /api/demo/seed
 router.post('/seed', (req, res) => {
-  const db = getDb();
-  seedDatabase(db);
-  res.json({ success: true, message: 'Demo data seeded successfully' });
+  try {
+    const db = getDb();
+    seedDatabase(db);
+    res.json({ success: true, message: 'Demo data seeded successfully' });
+  } catch (err) {
+    console.error('DEMO SEED ERROR:', err);
+    res.status(500).json({ error: err.message, success: false });
+  }
 });
 
 // POST /api/demo/quick-login - Instant 1-click token for portfolio demo
 router.post('/quick-login', (req, res) => {
-  const { role } = req.body;
-  const db = getDb();
-  seedDatabase(db); // ensure accounts exist
+  try {
+    const { role } = req.body;
+    const db = getDb();
+    seedDatabase(db); // ensure accounts exist
 
-  const targetRole = role || 'coordinator';
-  const user = db.prepare('SELECT * FROM users WHERE role = ? ORDER BY id ASC LIMIT 1').get(targetRole);
+    const targetRole = role || 'coordinator';
+    const user = db.prepare('SELECT * FROM users WHERE role = ? ORDER BY id ASC LIMIT 1').get(targetRole);
 
-  if (!user) {
-    return res.status(404).json({ error: `No demo user found with role ${targetRole}` });
+    if (!user) {
+      return res.status(404).json({ error: `No demo user found with role ${targetRole}` });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        full_name: user.full_name,
+        phone: user.phone,
+      },
+    });
+  } catch (err) {
+    console.error('QUICK LOGIN ERROR:', err);
+    res.status(500).json({ error: err.message });
   }
-
-  const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      full_name: user.full_name,
-      phone: user.phone,
-    },
-  });
 });
 
 module.exports = router;

@@ -47,18 +47,7 @@ function createApp() {
     });
   });
 
-  app.get('/health', (req, res) => {
-    let dbStatus = 'disconnected';
-    try {
-      const { getDb } = require('./db/database');
-      const db = getDb();
-      db.prepare('SELECT 1').get();
-      dbStatus = 'connected';
-    } catch (e) {
-      dbStatus = 'error: ' + e.message;
-    }
-    res.json({ status: 'ok', service: 'CMSR', db: dbStatus, node: process.version });
-  });
+  app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CMSR' }));
 
   app.use('/auth', authLimiter, authRoutes);
   app.use('/volunteers', apiLimiter, volunteerRoutes);
