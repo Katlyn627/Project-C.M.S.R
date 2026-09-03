@@ -1,5 +1,4 @@
-'use strict';
-
+const path = require('path');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/auth');
@@ -29,6 +28,23 @@ const apiLimiter = rateLimit({
 function createApp() {
   const app = express();
   app.use(express.json());
+
+  const publicDir = path.join(__dirname, '../public');
+  app.use(express.static(publicDir));
+
+  app.get('/', (req, res) => {
+    if (req.accepts('html')) {
+      return res.sendFile(path.join(publicDir, 'index.html'));
+    }
+    return res.json({
+      name: 'Project C.M.S.R',
+      description: 'Community Mentorship & Safe Route Volunteer Coordinator API',
+      status: 'online',
+      version: '1.0.0',
+      health: '/health',
+      documentation: 'https://github.com/Katlyn627/Project-C.M.S.R'
+    });
+  });
 
   app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CMSR' }));
 

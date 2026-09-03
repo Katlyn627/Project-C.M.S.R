@@ -22,11 +22,23 @@ function bearer(token) {
   return 'Bearer ' + token;
 }
 
-describe('Health', () => {
+describe('Health and Root', () => {
   it('GET /health returns ok', async () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
+  });
+
+  it('GET / returns API JSON metadata when requested', async () => {
+    const res = await request(app).get('/').set('Accept', 'application/json');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('online');
+  });
+
+  it('GET / returns HTML landing page for browser requests', async () => {
+    const res = await request(app).get('/').set('Accept', 'text/html');
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Project C.M.S.R');
   });
 });
 

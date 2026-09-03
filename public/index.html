@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project C.M.S.R — Volunteer Coordination API</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --badge-bg: #22354c;
+      --badge-text: #7dd3fc;
+      --code-bg: #090d16;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #f8fafc 40%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 1.5rem auto;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      border: 1px solid #38bdf8;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: #273549;
+      transform: translateY(-1px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .api-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .api-section h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+
+    .endpoint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      overflow-x: auto;
+    }
+
+    .method {
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .method-get { background: #065f46; color: #6ee7b7; }
+    .method-post { background: #1e40af; color: #93c5fd; }
+    .method-put { background: #854d0e; color: #fde047; }
+
+    .path {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    .desc {
+      color: var(--text-muted);
+      margin-left: auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 0.82rem;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: auto;
+      padding-top: 2rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="status-badge">
+        <span class="pulse"></span>
+        API Online & Ready
+      </div>
+      <h1>Project C.M.S.R</h1>
+      <p class="subtitle">
+        Community Mentorship &amp; Safe Route Volunteer Coordinator. A platform connecting community volunteers with local youth centers and schools.
+      </p>
+      <div class="btn-group">
+        <a href="/health" class="btn btn-primary" target="_blank">
+          <span>🩺</span> View /health Status
+        </a>
+        <a href="https://github.com/Katlyn627/Project-C.M.S.R" class="btn btn-secondary" target="_blank" rel="noopener">
+          <span>📂</span> GitHub Repository
+        </a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h3><span>🚶‍♀️</span> Safe Route Rosters</h3>
+        <p>Manage weekly walking-bus routes, after-school tutoring, and mentorship sessions with volunteer capacity enforcement.</p>
+      </div>
+      <div class="card">
+        <h3><span>🛡️</span> Safeguarding</h3>
+        <p>Secure incident logging with AES-256-GCM encryption at rest, role-based decryption, and automated coordinator escalation alerts.</p>
+      </div>
+      <div class="card">
+        <h3><span>📱</span> SMS &amp; USSD Gateway</h3>
+        <p>Automated shift reminders, safe arrival confirmations for parents, and simulated USSD callback sessions for low-connectivity regions.</p>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <h2>Core API Endpoints</h2>
+      <div class="endpoint-list">
+        <div class="endpoint">
+          <span class="method method-get">GET</span>
+          <span class="path">/health</span>
+          <span class="desc">Service health status</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-post">POST</span>
+          <span class="path">/auth/register</span>
+          <span class="desc">Register user (admin, coordinator, volunteer, viewer)</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-post">POST</span>
+          <span class="path">/auth/login</span>
+          <span class="desc">Authenticate user &amp; receive JWT</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-get">GET</span>
+          <span class="path">/volunteers</span>
+          <span class="desc">List volunteer profiles (coordinator+)</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-get">GET</span>
+          <span class="path">/shifts</span>
+          <span class="desc">List walking bus and mentorship shifts</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-post">POST</span>
+          <span class="path">/incidents</span>
+          <span class="desc">Report safeguarding incident (AES-256 encrypted)</span>
+        </div>
+        <div class="endpoint">
+          <span class="method method-post">POST</span>
+          <span class="path">/sms/safe-arrival</span>
+          <span class="desc">Send arrival notification to parents</span>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Project C.M.S.R &bull; Hosted on <a href="https://render.com" target="_blank" rel="noopener">Render</a> &bull; <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener">View Source on GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>
