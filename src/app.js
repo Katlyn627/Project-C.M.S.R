@@ -47,18 +47,17 @@ function createApp() {
     });
   });
 
-  app.get('/health', (req, res) => res.json({ status: 'ok', service: 'CMSR' }));
-
-  app.get('/api/debug-db', (req, res) => {
+  app.get('/health', (req, res) => {
+    let dbStatus = 'disconnected';
     try {
       const { getDb } = require('./db/database');
       const db = getDb();
-      const test = db.prepare('SELECT 1 as val').get();
-      res.json({ ok: true, node: process.version, test });
-    } catch (err) {
-      console.error('DEBUG-DB ERROR:', err);
-      res.status(500).json({ error: err.message, stack: err.stack, node: process.version });
+      db.prepare('SELECT 1').get();
+      dbStatus = 'connected';
+    } catch (e) {
+      dbStatus = 'error: ' + e.message;
     }
+    res.json({ status: 'ok', service: 'CMSR', db: dbStatus, node: process.version });
   });
 
   app.use('/auth', authLimiter, authRoutes);

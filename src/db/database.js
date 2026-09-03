@@ -4,18 +4,34 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const crypto = require('crypto');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/cmsr.db');
+function resolveDbPath() {
+  if (process.env.DB_PATH) return process.env.DB_PATH;
+  try {
+    const fs = require('fs');
+    const defaultDir = path.join(__dirname, '../../data');
+    if (!fs.existsSync(defaultDir)) fs.mkdirSync(defaultDir, { recursive: true });
+    return path.join(defaultDir, 'cmsr.db');
+  } catch {
+    const os = require('os');
+    return path.join(os.tmpdir(), 'cmsr.db');
+  }
+}
 
 let db;
 
 function getDb() {
   if (!db) {
-    const Database = require('better-sqlite3');
     const fs = require('fs');
-    const dir = path.dirname(DB_PATH);
+    const dbPath = resolveDbPath();
+    const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    db = new Database(DB_PATH);
-    db.pragma('journal_mode = WAL');
+    
+    db = new Database(dbPath);
+    try {
+      db.pragma('journal_mode = DELETE');
+    } catch (e) {
+      console.warn('journal_mode warning:', e);
+    }
     db.pragma('foreign_keys = ON');
     initSchema(db);
   }

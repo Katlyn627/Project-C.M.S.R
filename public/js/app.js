@@ -624,3 +624,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load initial data
   await loadAllData();
 });
+
