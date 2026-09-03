@@ -48,7 +48,27 @@ npm test         # run all tests
 | `PORT`            | `3000`                         | HTTP port                                   |
 | `DB_PATH`         | `data/cmsr.db`                 | SQLite database file path                   |
 | `JWT_SECRET`      | *(insecure default)*           | JWT signing secret — **change in production** |
-| `ENCRYPTION_KEY`  | *(derived from default string)*| 64-char hex key for AES-256-GCM — **change in production** |
+| `ENCRYPTION_KEY`  | *(derived from default string)*| 64-char hex key or string for AES-256-GCM   |
+
+## Deploy to Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Katlyn627/Project-C.M.S.R)
+
+This repository includes a [`render.yaml`](render.yaml) blueprint for one-click setup on [Render](https://render.com):
+
+1. Click the **Deploy to Render** button above or log into [Render Dashboard](https://dashboard.render.com).
+2. Go to **Blueprints** → **New Blueprint Instance**.
+3. Select your repository `Katlyn627/Project-C.M.S.R`.
+4. Render will automatically detect the settings:
+   - **Runtime**: Node
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+   - **Health Check**: `/health`
+   - **Environment Variables**: `NODE_VERSION`, `JWT_SECRET`, `ENCRYPTION_KEY` (automatically generated securely).
+5. Click **Apply** to deploy!
+
+> **Note on SQLite Persistence**: On Render's free tier, files are ephemeral and reset when the service spins down. For production persistence, attach a Render Persistent Disk (`/var/data`) on a paid tier or point to an external database.
+
 
 ## API Overview
 

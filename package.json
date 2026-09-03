@@ -9,7 +9,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://localhost:26831/Katlyn627/Project-C.M.S.R"
+    "url": "git+https://github.com/Katlyn627/Project-C.M.S.R.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [],
   "author": "",

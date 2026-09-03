@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: project-cmsr
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      # To enable persistent storage for SQLite on a paid plan (Starter+):
+      # disk:
+      #   name: cmsr-data
+      #   mountPath: /var/data
+      #   sizeGB: 1
+      # envVars:
+      #   - key: DB_PATH
+      #     value: /var/data/cmsr.db

@@ -2,9 +2,18 @@
 
 const crypto = require('crypto');
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
-  ? Buffer.from(process.env.ENCRYPTION_KEY, 'hex')
-  : crypto.scryptSync('cmsr-default-key-change-in-production', 'cmsr-salt', 32);
+function getEncryptionKey() {
+  const envKey = process.env.ENCRYPTION_KEY;
+  if (!envKey) {
+    return crypto.scryptSync('cmsr-default-key-change-in-production', 'cmsr-salt', 32);
+  }
+  if (envKey.length === 64 && /^[0-9a-fA-F]+$/.test(envKey)) {
+    return Buffer.from(envKey, 'hex');
+  }
+  return crypto.createHash('sha256').update(envKey).digest();
+}
+
+const ENCRYPTION_KEY = getEncryptionKey();
 
 const ALGORITHM = 'aes-256-gcm';
 
