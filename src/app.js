@@ -31,7 +31,7 @@ function createApp() {
   app.use(express.json());
 
   const publicDir = path.join(__dirname, '../public');
-  app.use(express.static(publicDir));
+  app.use(express.static(publicDir, { index: false }));
 
   app.get('/', (req, res) => {
     if (req.accepts('html')) {

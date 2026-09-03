@@ -1,27 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project C.M.S.R — Community Mentorship &amp; Safe Route Coordinator</title>
+  <title>Project C.M.S.R — Community-Monitored Safe Routes &amp; Safeguarding Dispatch</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
 
-  <!-- App Header -->
+  <!-- ==========================================
+       APP HEADER & BRANDING
+       ========================================== -->
   <header class="app-header">
     <div class="header-container">
       <div class="brand-section">
-        <div class="brand-logo-badge">CMSR</div>
+        <div class="brand-logo-wrap" title="Project C.M.S.R Safe Route Emblem">
+          <img src="/assets/logo.svg" alt="CMSR Safe Route Shield" class="brand-logo-svg" />
+        </div>
         <div class="brand-title-group">
-          <h1>Project C.M.S.R.</h1>
-          <p>Community Mentorship &amp; Safe Route Volunteer Coordinator</p>
+          <h1>
+            Project C.M.S.R.
+            <span class="brand-acronym-badge">SAFE PASSAGE</span>
+          </h1>
+          <p>Community-Monitored Safe Routes &amp; Child Safeguarding Dispatch</p>
         </div>
       </div>
+      
       <div class="header-actions">
-        <div class="health-pill" id="healthStatus">
+        <div class="health-pill" id="healthStatus" title="API Gateway Health &amp; Latency">
           <span class="pulse-dot"></span> Checking API...
         </div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Daylight Civic / Operations Night">
+          🌓
+        </button>
         <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
           📂 GitHub
         </a>
@@ -29,298 +41,346 @@
     </div>
   </header>
 
-  <!-- User & Portfolio Demo Bar -->
-  <div class="user-bar">
-    <div class="user-bar-inner">
-      <div class="current-user-info" id="currentUserDisplay">
-        <span>Loading session...</span>
+  <!-- ==========================================
+       OPERATIONAL CORRIDOR STATUS RIBBON
+       ========================================== -->
+  <div class="corridor-ribbon">
+    <div class="corridor-ribbon-inner">
+      <div class="ribbon-status-group">
+        <div class="ribbon-item">
+          <span>🟢</span>
+          <span>Corridor Condition:</span>
+          <span class="ribbon-tag">Morning Walking Bus Active (07:00 – 08:30)</span>
+        </div>
+        <div class="ribbon-item">
+          <span>👥</span>
+          <span>Chaperone Ratio:</span>
+          <span class="ribbon-tag">1:6 (Safeguarding Compliant)</span>
+        </div>
+        <div class="ribbon-item">
+          <span>🛡️</span>
+          <span>Data Security:</span>
+          <span class="ribbon-tag">AES-256-GCM Encrypted at Rest</span>
+        </div>
       </div>
-      <div class="demo-selector-group">
-        <span class="demo-label">Demo Role Switcher:</span>
-        <button class="btn btn-sm btn-outline" onclick="quickLogin('coordinator')" title="Coordinator permissions: manage routes, shifts, and view decrypted incident logs">
+      <div class="ribbon-item">
+        <span>📶</span>
+        <span>Telecom Uplink:</span>
+        <span class="ribbon-tag" style="background:rgba(255,255,255,0.25)">USSD *384*100# Online</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       ACTIVE PERSONA & PORTFOLIO DEMO BAR
+       ========================================== -->
+  <div class="persona-bar">
+    <div class="persona-bar-inner">
+      <div class="active-identity-display" id="currentUserDisplay">
+        <div class="identity-avatar coordinator" id="userAvatar">SK</div>
+        <div class="identity-details">
+          <div class="identity-name">
+            <span id="userName">Sarah Kintu</span>
+            <span class="identity-badge coordinator" id="userBadge">COORDINATOR</span>
+          </div>
+          <div class="identity-permissions" id="userPermissions">
+            Full Access: Dispatch Rosters, Route Management, Decrypted Safeguarding Desk
+          </div>
+        </div>
+      </div>
+
+      <div class="persona-switcher-cluster">
+        <span style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Evaluate Role:</span>
+        <button class="persona-btn active" id="btnRoleCoord" onclick="quickLogin('coordinator')" title="Sarah Kintu: Full access to shifts, routes, and decrypted incident logs">
           🛡️ Coordinator
         </button>
-        <button class="btn btn-sm btn-outline" onclick="quickLogin('volunteer')" title="Volunteer permissions: report incidents, view assignments">
+        <button class="persona-btn" id="btnRoleVol" onclick="quickLogin('volunteer')" title="Amara Okafor: Field volunteer, mobile shift view, incident filing">
           🚶 Volunteer
         </button>
-        <button class="btn btn-sm btn-outline" onclick="quickLogin('admin')" title="Admin: full system clearance">
+        <button class="persona-btn" id="btnRoleAdmin" onclick="quickLogin('admin')" title="Elena Rostova: System director, administrative oversight">
           ⚡ Admin
         </button>
-        <button class="btn btn-sm btn-emerald" onclick="seedDemoData()" title="Populate realistic routes, shifts, volunteers, and sample incidents for evaluation">
-          🌱 Seed Demo Data
+        <button class="persona-btn" id="btnRoleViewer" onclick="quickLogin('viewer')" title="Community Observer: Read-only safeguarding view">
+          👁️ Observer
         </button>
-        <button class="btn btn-sm btn-outline" onclick="logout()" title="Reset session">
-          🔄 Reset
+        <button class="persona-btn btn-seed" onclick="seedDemoData()" title="Populate sample corridors, volunteers, shifts, and encrypted incident reports">
+          🌱 Seed Demo Data
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Navigation Tabs -->
+  <!-- ==========================================
+       NAVIGATION TABS
+       ========================================== -->
   <nav class="app-tabs-nav">
     <div class="tabs-container">
       <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
-        📊 Overview
+        📊 Corridor Overview
       </button>
       <button class="tab-btn" data-tab="shifts" onclick="switchTab('shifts')">
-        🚶‍♀️ Safe Routes &amp; Shifts
+        🚶‍♀️ Safe Routes &amp; Walking Bus
       </button>
       <button class="tab-btn" data-tab="incidents" onclick="switchTab('incidents')">
         🛡️ Safeguarding Desk
       </button>
       <button class="tab-btn" data-tab="ussd" onclick="switchTab('ussd')">
-        📱 USSD &amp; SMS Terminal
+        📱 USSD &amp; Last-Mile SMS
       </button>
     </div>
   </nav>
 
-  <!-- Main View Container -->
+  <!-- ==========================================
+       MAIN VIEW CONTAINER
+       ========================================== -->
   <main class="app-main">
 
-    <!-- TAB 1: DASHBOARD OVERVIEW -->
+    <!-- ==========================================
+         TAB 1: CORRIDOR OVERVIEW
+         ========================================== -->
     <div id="tab-dashboard" class="tab-pane active">
       
       <!-- Metrics Counters -->
       <div class="metrics-grid">
-        <div class="metric-card cyan">
+        <div class="metric-card teal">
           <div class="metric-header">
-            <span class="metric-label">Active Volunteers</span>
+            <span class="metric-label">Vetted Volunteers</span>
             <span class="metric-icon">👥</span>
           </div>
           <div class="metric-value" id="metricVolunteers">0</div>
-          <div class="metric-footer">Vetted chaperones &amp; tutors</div>
+          <div class="metric-footer">Walking-bus chaperones &amp; tutors</div>
         </div>
+
         <div class="metric-card emerald">
           <div class="metric-header">
-            <span class="metric-label">Scheduled Shifts</span>
+            <span class="metric-label">Scheduled Escorts</span>
             <span class="metric-icon">📅</span>
           </div>
           <div class="metric-value" id="metricShifts">0</div>
-          <div class="metric-footer">Walking bus &amp; mentorship</div>
+          <div class="metric-footer">Morning walking bus &amp; mentorship</div>
         </div>
-        <div class="metric-card rose">
+
+        <div class="metric-card amber">
           <div class="metric-header">
-            <span class="metric-label">Safeguarding Reports</span>
+            <span class="metric-label">Monitored Corridors</span>
+            <span class="metric-icon">🗺️</span>
+          </div>
+          <div class="metric-value" id="metricRoutes">0</div>
+          <div class="metric-footer">Designated safe passage pathways</div>
+        </div>
+
+        <div class="metric-card sapphire">
+          <div class="metric-header">
+            <span class="metric-label">Safeguarding Log</span>
             <span class="metric-icon">🛡️</span>
           </div>
           <div class="metric-value" id="metricIncidents">0</div>
-          <div class="metric-footer">AES-256-GCM encrypted</div>
-        </div>
-        <div class="metric-card indigo">
-          <div class="metric-header">
-            <span class="metric-label">Dispatched SMS</span>
-            <span class="metric-icon">📱</span>
-          </div>
-          <div class="metric-value" id="metricSms">0</div>
-          <div class="metric-footer">Parent arrival &amp; shift alerts</div>
+          <div class="metric-footer">AES-256 encrypted field reports</div>
         </div>
       </div>
 
-      <!-- Overview Info Cards -->
-      <div class="content-card">
-        <div class="section-header">
-          <h2 class="section-title"><span>🌍</span> Mission &amp; Safeguarding Architecture</h2>
+      <!-- Interactive Corridor Waypoint Tracker -->
+      <div class="corridor-tracker-card">
+        <div class="tracker-header">
+          <div>
+            <div class="tracker-title">
+              <span>🗺️</span>
+              <span>Active Corridor Schematic: Route 1 (Transit Hub → St. Mary Girls High School)</span>
+            </div>
+            <div class="section-subtitle">
+              Interactive safety checkpoints along the 2.4km walking-bus morning corridor. Click any node to view station intelligence.
+            </div>
+          </div>
+          <div class="tracker-meta">
+            <span class="identity-badge coordinator">LIVE MONITORED</span>
+            <span>Distance: 2.4 km | Est. Walking Time: 35 min</span>
+          </div>
         </div>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1rem">
-          Project C.M.S.R is designed to protect vulnerable adolescent students (particularly young girls) commuting to secondary schools and after-school youth centers across low-connectivity regions. The platform coordinates walking-bus escorts, enforces safety ratios, and securely handles incident escalations.
-        </p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:1rem">
-          <div style="background:var(--bg-input);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">
-            <h4 style="color:var(--brand-cyan);font-size:0.95rem;margin-bottom:0.35rem">🔒 Zero-Plaintext Child Data</h4>
-            <p style="font-size:0.82rem;color:var(--text-muted)">All incident descriptions and involved-party identifiers are encrypted at rest using authenticated AES-256-GCM cryptography. Only verified coordinators and admins possess role-based decryption clearance.</p>
+
+        <!-- Waypoint Pipeline -->
+        <div class="waypoint-pipeline">
+          <!-- Step 1 -->
+          <div class="waypoint-step active" onclick="selectWaypoint(1)">
+            <div class="waypoint-node assembly">🚏</div>
+            <div class="waypoint-time">07:00 AM</div>
+            <div class="waypoint-name">Assembly Point</div>
+            <div class="waypoint-status">Central Transit Hub</div>
           </div>
-          <div style="background:var(--bg-input);padding:1rem;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">
-            <h4 style="color:var(--badge-emerald);font-size:0.95rem;margin-bottom:0.35rem">📡 Low-Bandwidth SMS &amp; USSD</h4>
-            <p style="font-size:0.82rem;color:var(--text-muted)">Designed for field environments with minimal cellular data. Volunteers receive automated shift notifications and can confirm attendance or report issues via simulated USSD callback sessions.</p>
+
+          <!-- Step 2 -->
+          <div class="waypoint-step" onclick="selectWaypoint(2)">
+            <div class="waypoint-node checkpoint">🌉</div>
+            <div class="waypoint-time">07:25 AM</div>
+            <div class="waypoint-name">Checkpoint Alpha</div>
+            <div class="waypoint-status">Market Footbridge</div>
           </div>
+
+          <!-- Step 3 -->
+          <div class="waypoint-step" onclick="selectWaypoint(3)">
+            <div class="waypoint-node refuge">🏪</div>
+            <div class="waypoint-time">07:45 AM</div>
+            <div class="waypoint-name">Safe Haven Refuge</div>
+            <div class="waypoint-status">Market Pharmacy</div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="waypoint-step" onclick="selectWaypoint(4)">
+            <div class="waypoint-node hazard">🚂</div>
+            <div class="waypoint-time">08:00 AM</div>
+            <div class="waypoint-name">Hazard Watchpoint</div>
+            <div class="waypoint-status">Railway Crossing Gate</div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="waypoint-step" onclick="selectWaypoint(5)">
+            <div class="waypoint-node destination">🏫</div>
+            <div class="waypoint-time">08:15 AM</div>
+            <div class="waypoint-name">School Terminal</div>
+            <div class="waypoint-status">St. Mary Girls High</div>
+          </div>
+        </div>
+
+        <!-- Waypoint Intelligence Drawer -->
+        <div class="waypoint-intel-drawer" id="waypointIntel">
+          <div>
+            <strong>Selected Station: Assembly Point (Central Transit Hub)</strong> — Roll call &amp; parent drop-off station.
+            <div style="color:var(--text-secondary); margin-top:2px;">
+              Active Escort: Amara Okafor | High-visibility vests issued | Roll-call ratio 1:6 compliant.
+            </div>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="switchTab('shifts')">
+            Manage Dispatch
+          </button>
         </div>
       </div>
 
-      <!-- Recent Shifts Section -->
-      <div class="content-card">
+      <!-- Mission Architecture & Core Modules -->
+      <div class="section-card">
         <div class="section-header">
-          <h3 class="section-title"><span>🚶‍♀️</span> Active Shift Rosters</h3>
-          <button class="btn btn-sm btn-primary" onclick="switchTab('shifts')">+ Manage Roster</button>
+          <div>
+            <h2 class="section-title">
+              <span>🏛️</span>
+              <span>Project C.M.S.R. Operational Architecture</span>
+            </h2>
+            <p class="section-subtitle">A community-led safeguarding platform providing protected school transit and mentoring for girls in vulnerable urban settlements.</p>
+          </div>
         </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Corridor / Route</th>
-                <th>Shift Type</th>
-                <th>Schedule</th>
-                <th>Capacity</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="recentShiftsTbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading shifts...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <!-- Recent Incidents Section -->
-      <div class="content-card">
-        <div class="section-header">
-          <h3 class="section-title"><span>🛡️</span> Recent Safeguarding Incidents</h3>
-          <button class="btn btn-sm btn-outline" onclick="switchTab('incidents')">Open Incident Desk</button>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Severity</th>
-                <th>Category</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="recentIncidentsTbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading incidents...</td></tr>
-            </tbody>
-          </table>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
+          <div style="background:var(--bg-subtle); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+            <div style="font-size:1.4rem; margin-bottom:0.5rem;">🚶‍♀️</div>
+            <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.35rem;">Walking-Bus Dispatch</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">
+              Structured morning and afternoon volunteer convoys. Vetted chaperones escort cohorts along verified safe transit corridors with pre-assigned checkpoints.
+            </p>
+          </div>
+
+          <div style="background:var(--bg-subtle); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+            <div style="font-size:1.4rem; margin-bottom:0.5rem;">🔒</div>
+            <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.35rem;">AES-256 Field Safeguarding</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">
+              All sensitive minor incident data and involved parties are encrypted at rest with hardware-grade AES-256-GCM. Unlocked solely by authorized supervisors.
+            </p>
+          </div>
+
+          <div style="background:var(--bg-subtle); padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+            <div style="font-size:1.4rem; margin-bottom:0.5rem;">📱</div>
+            <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.35rem;">Last-Mile USSD &amp; SMS</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.4;">
+              Works without mobile data or smartphones. Volunteers confirm shifts via USSD <code>*384*100#</code> and parents receive automated SMS safe arrival broadcasts.
+            </p>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- TAB 2: SHIFT ROSTERS & ROUTES -->
+    <!-- ==========================================
+         TAB 2: SAFE ROUTES & SHIFTS
+         ========================================== -->
     <div id="tab-shifts" class="tab-pane">
       
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:1.5rem;margin-bottom:1.5rem">
-        
-        <!-- Safe Route Directory -->
-        <div class="content-card" style="margin-bottom:0">
-          <div class="section-header">
-            <h3 class="section-title"><span>🗺️</span> Safe Walking Corridors</h3>
-          </div>
-          <div id="routesContainer" style="max-height:360px;overflow-y:auto;padding-right:0.5rem">
-            <p style="color:var(--text-muted);font-size:0.85rem">Loading routes...</p>
-          </div>
-          
-          <hr style="border:none;border-top:1px solid var(--border-subtle);margin:1.25rem 0" />
-          
-          <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:var(--text-primary)">+ Register New Safe Route</h4>
-          <form id="createRouteForm" onsubmit="handleCreateRoute(event)">
-            <div class="form-group" style="margin-bottom:0.75rem">
-              <label>Route Corridor Name *</label>
-              <input type="text" id="routeName" class="form-control" placeholder="e.g. Route 3: West Ward to Community High" required />
-            </div>
-            <div class="form-grid" style="margin-bottom:0.75rem">
-              <div class="form-group">
-                <label>Start Point *</label>
-                <input type="text" id="routeStart" class="form-control" placeholder="Assembly point" required />
-              </div>
-              <div class="form-group">
-                <label>End Point *</label>
-                <input type="text" id="routeEnd" class="form-control" placeholder="School/Center gate" required />
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:0.85rem">
-              <label>Safety Notes &amp; Checkpoints</label>
-              <input type="text" id="routeDesc" class="form-control" placeholder="Well-lit path along main avenue with 2 chaperones" />
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%">Create Safe Route</button>
-          </form>
+      <!-- Top Action Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; gap:1rem; flex-wrap:wrap;">
+        <div>
+          <h2 class="section-title">
+            <span>🚶‍♀️</span>
+            <span>Walking-Bus Rosters &amp; Corridor Schedules</span>
+          </h2>
+          <p class="section-subtitle">Manage daily school escort convoys, assign vetted chaperones, and monitor attendance capacity.</p>
         </div>
-
-        <!-- Schedule New Shift Form -->
-        <div class="content-card" style="margin-bottom:0">
-          <div class="section-header">
-            <h3 class="section-title"><span>➕</span> Schedule Volunteer Shift</h3>
-          </div>
-          <form id="createShiftForm" onsubmit="handleCreateShift(event)">
-            <div class="form-group" style="margin-bottom:0.75rem">
-              <label>Assigned Walking Route</label>
-              <select id="shiftRouteSelect" class="form-control">
-                <option value="">-- Select Walking Route --</option>
-              </select>
-            </div>
-            <div class="form-grid" style="margin-bottom:0.75rem">
-              <div class="form-group">
-                <label>Shift Type *</label>
-                <select id="shiftType" class="form-control" required>
-                  <option value="walking_bus">Walking Bus Escort</option>
-                  <option value="tutoring">After-school Tutoring</option>
-                  <option value="mentorship">Mentorship Session</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Max Volunteers *</label>
-                <input type="number" id="shiftMaxVolunteers" class="form-control" value="2" min="1" max="10" required />
-              </div>
-            </div>
-            <div class="form-grid" style="margin-bottom:0.75rem">
-              <div class="form-group">
-                <label>Date *</label>
-                <input type="date" id="shiftDate" class="form-control" required />
-              </div>
-              <div class="form-group">
-                <label>Start Time *</label>
-                <input type="time" id="shiftStart" class="form-control" value="07:00" required />
-              </div>
-            </div>
-            <div class="form-grid" style="margin-bottom:0.75rem">
-              <div class="form-group">
-                <label>End Time *</label>
-                <input type="time" id="shiftEnd" class="form-control" value="08:30" required />
-              </div>
-              <div class="form-group">
-                <label>Operational Notes</label>
-                <input type="text" id="shiftNotes" class="form-control" placeholder="Special supervision requirements" />
-              </div>
-            </div>
-            <button type="submit" class="btn btn-emerald" style="width:100%">Schedule Shift</button>
-          </form>
-        </div>
-
-      </div>
-
-      <!-- Full Scheduled Shifts Table -->
-      <div class="content-card">
-        <div class="section-header">
-          <h3 class="section-title"><span>📋</span> Comprehensive Shift Schedule</h3>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Corridor / Route</th>
-                <th>Type</th>
-                <th>Schedule</th>
-                <th>Capacity</th>
-                <th>Notes</th>
-                <th>Assignment</th>
-              </tr>
-            </thead>
-            <tbody id="shiftsFullTbody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading shifts...</td></tr>
-            </tbody>
-          </table>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-primary" onclick="openNewShiftModal()">
+            ➕ Schedule New Shift
+          </button>
+          <button class="btn btn-outline" onclick="openNewRouteModal()">
+            🗺️ Register Safe Corridor
+          </button>
         </div>
       </div>
 
-      <!-- Verified Volunteer Roster -->
-      <div class="content-card">
-        <div class="section-header">
-          <h3 class="section-title"><span>👥</span> Volunteer Staff Roster</h3>
+      <!-- Active Corridors Row -->
+      <div style="margin-bottom:1.5rem;">
+        <h3 style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); letter-spacing:0.04em; margin-bottom:0.75rem;">
+          Designated Safe Corridors:
+        </h3>
+        <div id="routesGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem;">
+          <div style="padding:1.5rem; text-align:center; color:var(--text-muted); background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md);">
+            Loading corridors...
+          </div>
         </div>
-        <div class="table-responsive">
-          <table class="data-table">
+      </div>
+
+      <!-- Shift Cards Grid -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">
+              <span>📋</span>
+              <span>Upcoming Escort Shifts</span>
+            </h3>
+            <p class="section-subtitle">Chaperone allocation, volunteer sign-ins, and automated SMS reminder alerts.</p>
+          </div>
+        </div>
+
+        <div class="shifts-grid" id="shiftsGrid">
+          <div style="padding:2rem; text-align:center; color:var(--text-muted);">
+            Loading scheduled shifts...
+          </div>
+        </div>
+      </div>
+
+      <!-- Volunteer Roster Table -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">
+              <span>👥</span>
+              <span>Active Volunteer Roster &amp; Safeguarding Credentials</span>
+            </h3>
+            <p class="section-subtitle">Vetted community volunteers with background verification and first-aid certifications.</p>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="volunteersTable">
             <thead>
               <tr>
                 <th>Volunteer Name</th>
+                <th>Role &amp; Username</th>
                 <th>Phone Number</th>
-                <th>Skills &amp; Roles</th>
+                <th>Verified Skills</th>
                 <th>Availability</th>
-                <th>Vetting Status</th>
-                <th>Direct SMS Alert</th>
+                <th>Safeguarding Status</th>
+                <th>Direct Action</th>
               </tr>
             </thead>
-            <tbody id="volunteersTbody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading volunteers...</td></tr>
+            <tbody>
+              <tr>
+                <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+                  Loading volunteers...
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -328,90 +388,114 @@
 
     </div>
 
-    <!-- TAB 3: SAFEGUARDING & INCIDENT DESK -->
+    <!-- ==========================================
+         TAB 3: SAFEGUARDING INCIDENT DESK
+         ========================================== -->
     <div id="tab-incidents" class="tab-pane">
-
-      <!-- Encryption Notice -->
-      <div class="enc-notice-banner">
-        <span class="enc-icon">🔐</span>
+      
+      <!-- Safeguarding Security Notice Banner -->
+      <div class="safeguarding-banner">
+        <div class="safeguarding-security-info">
+          <div class="crypto-lock-icon">🔒</div>
+          <div class="crypto-lock-text">
+            <h4>
+              <span>AES-256-GCM Cryptographic Protection</span>
+              <span class="identity-badge coordinator" id="incidentSecurityBadge">ACTIVE</span>
+            </h4>
+            <p>
+              Minor identities, witness testimonies, and incident descriptions are encrypted at rest using hardware-accelerated AES-256-GCM with individual IVs and authentication tags. Unlocked only for authorized supervisors.
+            </p>
+          </div>
+        </div>
         <div>
-          <strong>AES-256-GCM Child Protection Safeguarding Standard</strong><br />
-          All reported incident descriptions and involved-party identifiers are cryptographically encrypted before database write. Only verified Coordinators and Admins possess the key derivation clearance to decrypt and inspect details.
+          <button class="btn btn-sm btn-outline" id="decryptToggleBtn" onclick="toggleDecryptionMode()">
+            🔓 Toggle Supervisor Audit View
+          </button>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:minmax(340px, 420px) 1fr;gap:1.5rem;align-items:start">
+      <!-- Incident Submission Form & Recent Incidents Grid -->
+      <div style="display:grid; grid-template-columns: 380px 1fr; gap:1.5rem; align-items:start;">
         
-        <!-- Report Incident Form -->
-        <div class="content-card">
-          <div class="section-header">
-            <h3 class="section-title"><span>⚠️</span> Report Incident</h3>
-          </div>
-          <form id="reportIncidentForm" onsubmit="handleReportIncident(event)">
-            <div class="form-grid" style="margin-bottom:0.75rem">
-              <div class="form-group">
-                <label>Category *</label>
-                <select id="incType" class="form-control" required>
-                  <option value="suspicious_activity">Suspicious Activity</option>
-                  <option value="route_hazard">Route Hazard / Blockage</option>
-                  <option value="harassment">Harassment / Intimidation</option>
-                  <option value="missing_student">Missing Student Alert</option>
-                  <option value="medical_emergency">Medical Emergency</option>
-                  <option value="other">Other Incident</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Severity Level *</label>
-                <select id="incSeverity" class="form-control" required>
-                  <option value="low">Low (Documentation)</option>
-                  <option value="medium" selected>Medium (Action needed)</option>
-                  <option value="high">High (Immediate SMS escalation)</option>
-                  <option value="critical">Critical (Emergency lock)</option>
-                </select>
-              </div>
+        <!-- Incident Filing Form -->
+        <div class="section-card">
+          <h3 class="section-title" style="margin-bottom:1rem;">
+            <span>📝</span>
+            <span>Report Field Incident</span>
+          </h3>
+          <p class="section-subtitle" style="margin-bottom:1rem;">
+            Log suspicious activities, street harassment, route hazards, or emergency welfare alerts during shifts.
+          </p>
+
+          <form id="incidentForm" onsubmit="submitIncident(event)">
+            <div class="form-group">
+              <label class="form-label" for="incType">Incident Classification</label>
+              <select class="form-control" id="incType" required>
+                <option value="suspicious_activity">Suspicious Activity / Vehicle</option>
+                <option value="route_hazard">Physical Route Hazard (Bridge, Railway, Light)</option>
+                <option value="harassment">Street Harassment / Disturbance</option>
+                <option value="medical">Medical / First Aid Emergency</option>
+                <option value="other">Other Incident</option>
+              </select>
             </div>
-            <div class="form-group" style="margin-bottom:0.75rem">
-              <label>Location / Checkpoint</label>
-              <input type="text" id="incLocation" class="form-control" placeholder="e.g. Route 1 Footbridge, Checkpoint B" />
+
+            <div class="form-group">
+              <label class="form-label" for="incSeverity">Triage Severity Level</label>
+              <select class="form-control" id="incSeverity" required>
+                <option value="low">Low — Routine Hazard (Recorded for maintenance)</option>
+                <option value="medium" selected>Medium — Requires Coordinator Follow-up</option>
+                <option value="high">High — Urgent Attention (SMS sent to all staff)</option>
+                <option value="critical">Critical — Immediate Escort &amp; Police / Medical</option>
+              </select>
             </div>
-            <div class="form-group" style="margin-bottom:0.75rem">
-              <label>Involved Parties (Encrypted at rest)</label>
-              <input type="text" id="incParties" class="form-control" placeholder="Names, vehicle license plates, descriptions" />
+
+            <div class="form-group">
+              <label class="form-label" for="incLocation">Exact Location / Checkpoint</label>
+              <input type="text" class="form-control" id="incLocation" placeholder="e.g. Market Footbridge, Checkpoint B" required />
             </div>
-            <div class="form-group" style="margin-bottom:0.75rem">
-              <label>Incident Description (Encrypted at rest) *</label>
-              <textarea id="incDesc" class="form-control" placeholder="Provide factual details of the incident..." required></textarea>
+
+            <div class="form-group">
+              <label class="form-label" for="incParties">Involved Parties / Vehicles (Encrypted)</label>
+              <input type="text" class="form-control" id="incParties" placeholder="e.g. Silver sedan, license plate XYZ" />
             </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
-              <input type="checkbox" id="incReferral" style="width:16px;height:16px" />
-              <label for="incReferral" style="font-size:0.85rem;color:var(--text-secondary)">Flag for official Child Protection / Safeguarding Referral</label>
+
+            <div class="form-group">
+              <label class="form-label" for="incDescription">Confidential Narrative Description (Encrypted)</label>
+              <textarea class="form-control" id="incDescription" rows="4" placeholder="Detailed factual narrative of what occurred, actions taken, and student safety status..." required></textarea>
             </div>
-            <button type="submit" class="btn btn-rose" style="width:100%">Submit Encrypted Report</button>
+
+            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem;">
+              <input type="checkbox" id="incSafeguarding" style="width:16px; height:16px; accent-color:var(--rose-600);" />
+              <label for="incSafeguarding" style="font-size:0.82rem; font-weight:600; color:var(--rose-600); cursor:pointer;">
+                Trigger Child Protection Social Services Referral
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">
+              🔒 Encrypt &amp; File Incident
+            </button>
           </form>
         </div>
 
-        <!-- Incident History Log -->
-        <div class="content-card">
+        <!-- Live Incident Triage Stream -->
+        <div class="section-card">
           <div class="section-header">
-            <h3 class="section-title"><span>🛡️</span> Safeguarding Log &amp; Case Reviews</h3>
+            <div>
+              <h3 class="section-title">
+                <span>🛡️</span>
+                <span>Safeguarding Incident Triage Stream</span>
+              </h3>
+              <p class="section-subtitle">Real-time encrypted reports submitted by chaperones and field supervisors.</p>
+            </div>
+            <div>
+              <span id="incidentCountBadge" class="identity-badge coordinator">0 INCIDENTS</span>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Severity</th>
-                  <th>Type</th>
-                  <th>Location</th>
-                  <th>Incident Details (Decrypted for Coord+)</th>
-                  <th>Status Workflow</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody id="incidentsFullTbody">
-                <tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Loading incidents...</td></tr>
-              </tbody>
-            </table>
+
+          <div class="incidents-list" id="incidentsList">
+            <div style="padding:2rem; text-align:center; color:var(--text-muted);">
+              Loading incident records...
+            </div>
           </div>
         </div>
 
@@ -419,104 +503,119 @@
 
     </div>
 
-    <!-- TAB 4: USSD & SMS SIMULATOR -->
+    <!-- ==========================================
+         TAB 4: USSD & LAST-MILE SMS TERMINAL
+         ========================================== -->
     <div id="tab-ussd" class="tab-pane">
-
-      <div class="ussd-simulator-grid">
+      
+      <div class="telecom-studio-grid">
         
-        <!-- Interactive USSD Feature Phone Simulator -->
+        <!-- Nokia Feature Phone Simulator -->
         <div>
-          <h3 class="section-title" style="margin-bottom:0.85rem"><span>📲</span> Interactive USSD Session Simulator</h3>
-          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
-            Simulates an offline volunteer dialing <code>*384*100#</code> on a basic feature phone in rural or low-bandwidth environments.
-          </p>
+          <div class="section-header" style="margin-bottom:0.75rem;">
+            <div>
+              <h3 class="section-title" style="font-size:0.95rem;">
+                <span>📱</span>
+                <span>Field USSD Feature Phone Simulator</span>
+              </h3>
+              <p class="section-subtitle">Simulates low-bandwidth volunteer handsets dialing <code>*384*100#</code>.</p>
+            </div>
+          </div>
 
-          <div class="phone-mockup">
-            <div class="phone-speaker"></div>
+          <div class="nokia-phone-frame">
+            <div class="phone-earpiece"></div>
             
-            <div class="phone-screen">
-              <div id="ussdScreenContent" class="ussd-content">CON Welcome to CMSR Volunteer Dispatch
-1. Confirm Shift Assignment
-2. Report Safe Route Arrival
-3. Report Urgent Issue
-4. Contact Coordinator</div>
-              
-              <div class="ussd-input-row" id="ussdInputRow">
-                <input type="text" id="ussdInput" class="ussd-input" placeholder="Type option..." />
-                <button class="btn btn-sm btn-primary" onclick="submitUssdInput()">SEND</button>
-              </div>
-            </div>
+            <div class="phone-screen" id="ussdScreen">CON Welcome to CMSR
+1. Confirm shift
+2. Report issue
+3. Safe arrival</div>
 
-            <!-- Dial Keypad -->
             <div class="phone-keypad">
-              <button class="keypad-btn" onclick="ussdKeypadPress('1')">1</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('2')">2</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('3')">3</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('4')">4</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('5')">5</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('6')">6</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('7')">7</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('8')">8</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('9')">9</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('*')">*</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('0')">0</button>
-              <button class="keypad-btn" onclick="ussdKeypadPress('#')">#</button>
+              <button class="key-btn" onclick="ussdPress('1')">1</button>
+              <button class="key-btn" onclick="ussdPress('2')">2</button>
+              <button class="key-btn" onclick="ussdPress('3')">3</button>
+              <button class="key-btn" onclick="ussdPress('4')">4</button>
+              <button class="key-btn" onclick="ussdPress('5')">5</button>
+              <button class="key-btn" onclick="ussdPress('6')">6</button>
+              <button class="key-btn" onclick="ussdPress('7')">7</button>
+              <button class="key-btn" onclick="ussdPress('8')">8</button>
+              <button class="key-btn" onclick="ussdPress('9')">9</button>
+              <button class="key-btn" onclick="ussdPress('*')">*</button>
+              <button class="key-btn" onclick="ussdPress('0')">0</button>
+              <button class="key-btn" onclick="ussdPress('#')">#</button>
             </div>
 
-            <div class="keypad-action-row">
-              <button class="btn btn-outline" style="flex:1" onclick="resetUssdSession()">🔄 End / Reset Call</button>
+            <div class="phone-action-keys">
+              <button class="key-call" onclick="ussdSend()">📞 SEND</button>
+              <button class="key-end" onclick="ussdReset()">❌ RESET</button>
             </div>
           </div>
         </div>
 
-        <!-- Right Side: Parent Safe Arrival SMS Trigger + SMS Outbox -->
+        <!-- Parent Arrival Broadcast & Live SMS Ledger -->
         <div>
-          <!-- Safe Arrival Trigger Form -->
-          <div class="content-card">
+          
+          <!-- Parent Safe Arrival SMS Trigger Studio -->
+          <div class="section-card" style="margin-bottom:1.5rem;">
             <div class="section-header">
-              <h3 class="section-title"><span>📩</span> Parent Safe-Arrival SMS Dispatcher</h3>
+              <div>
+                <h3 class="section-title">
+                  <span>📨</span>
+                  <span>Parent Safe Arrival SMS Broadcast</span>
+                </h3>
+                <p class="section-subtitle">Instantly transmit arrival verification notifications to guardian phones when the walking bus reaches school gates.</p>
+              </div>
             </div>
-            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem">
-              Dispatches automated safe arrival SMS notifications to parents when walking buses deliver students safely to school gates.
-            </p>
-            <form id="safeArrivalForm" onsubmit="handleSafeArrivalSMS(event)">
-              <div class="form-grid" style="margin-bottom:0.75rem">
-                <div class="form-group">
-                  <label>Parent Phone Number *</label>
-                  <input type="text" id="arrivalPhone" class="form-control" value="+256712345678" required />
-                </div>
-                <div class="form-group">
-                  <label>Student / Child Name *</label>
-                  <input type="text" id="arrivalChildName" class="form-control" value="Amara Okafor" required />
-                </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:1rem; align-items:flex-end;">
+              <div>
+                <label class="form-label" for="smsStudentName">Student Name</label>
+                <input type="text" class="form-control" id="smsStudentName" value="Amara" placeholder="e.g. Amara" />
               </div>
-              <div class="form-group" style="margin-bottom:0.85rem">
-                <label>Arrival Location / Institution *</label>
-                <input type="text" id="arrivalLocation" class="form-control" value="St. Mary Girls High School" required />
+              <div>
+                <label class="form-label" for="smsParentPhone">Guardian Phone Number</label>
+                <input type="text" class="form-control" id="smsParentPhone" value="+256712345678" placeholder="+256..." />
               </div>
-              <button type="submit" class="btn btn-emerald">Dispatch Safe Arrival SMS</button>
-            </form>
+              <div>
+                <button class="btn btn-emerald" onclick="sendSafeArrivalSms()">
+                  📤 Send Arrival SMS
+                </button>
+              </div>
+            </div>
           </div>
 
-          <!-- SMS Outbox Log -->
-          <div class="content-card">
+          <!-- SMS Dispatch Ledger -->
+          <div class="section-card">
             <div class="section-header">
-              <h3 class="section-title"><span>📡</span> Live SMS Outbox &amp; Transmission Ledger</h3>
-              <button class="btn btn-sm btn-outline" onclick="loadUssdView()">Refresh Outbox</button>
+              <div>
+                <h3 class="section-title">
+                  <span>📬</span>
+                  <span>Live SMS Outbox Ledger</span>
+                </h3>
+                <p class="section-subtitle">Automated notification log across chaperones, guardians, and coordinators.</p>
+              </div>
+              <button class="btn btn-sm btn-outline" onclick="loadUssdTab()">
+                🔄 Refresh Ledger
+              </button>
             </div>
-            <div class="table-responsive">
-              <table class="data-table">
+
+            <div style="overflow-x:auto;">
+              <table class="data-table" id="smsTable">
                 <thead>
                   <tr>
+                    <th>Timestamp</th>
+                    <th>Type</th>
                     <th>Recipient</th>
-                    <th>Message Text</th>
-                    <th>Trigger</th>
-                    <th>Gateway Status</th>
-                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Message Content</th>
                   </tr>
                 </thead>
-                <tbody id="smsOutboxTbody">
-                  <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading SMS logs...</td></tr>
+                <tbody>
+                  <tr>
+                    <td colspan="5" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+                      Loading outbox logs...
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -530,37 +629,166 @@
 
   </main>
 
-  <!-- Volunteer Assignment Modal -->
-  <div id="assignModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 style="font-size:1.15rem;color:var(--text-primary)">Assign Volunteer to Shift Roster</h3>
-        <button class="modal-close" onclick="closeAssignModal()">&times;</button>
-      </div>
-      <form onsubmit="handleAssignVolunteer(event)">
-        <div class="form-group" style="margin-bottom:1.25rem">
-          <label>Select Verified Volunteer *</label>
-          <select id="assignVolunteerSelect" class="form-control" required>
-            <option value="">-- Loading volunteers --</option>
+  <!-- ==========================================
+       MODALS
+       ========================================== -->
+
+  <!-- Modal: Assign Volunteer to Shift -->
+  <div class="modal-overlay" id="assignModal">
+    <div class="modal-content">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; color:var(--text-primary);">
+        Assign Volunteer Chaperone
+      </h3>
+      <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+        Allocate a verified volunteer to this walking-bus escort shift.
+      </p>
+
+      <form id="assignForm" onsubmit="assignVolunteer(event)">
+        <input type="hidden" id="assignShiftId" />
+        <div class="form-group">
+          <label class="form-label" for="assignVolunteerSelect">Select Vetted Volunteer</label>
+          <select class="form-control" id="assignVolunteerSelect" required>
+            <option value="">Loading volunteers...</option>
           </select>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:0.5rem">
-          <button type="button" class="btn btn-outline" onclick="closeAssignModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Confirm Assignment</button>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-outline" onclick="closeAssignModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Confirm Assignment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Schedule New Shift -->
+  <div class="modal-overlay" id="newShiftModal">
+    <div class="modal-content">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; color:var(--text-primary);">
+        Schedule Safe Route Shift
+      </h3>
+      <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+        Create a new walking bus escort convoy or after-school tutoring session.
+      </p>
+
+      <form id="newShiftForm" onsubmit="submitShift(event)">
+        <div class="form-group">
+          <label class="form-label" for="shiftRouteSelect">Select Designated Safe Route</label>
+          <select class="form-control" id="shiftRouteSelect" required>
+            <option value="">Loading routes...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="shiftType">Shift Type</label>
+          <select class="form-control" id="shiftType" required>
+            <option value="walking_bus">Walking Bus Escort</option>
+            <option value="tutoring">After-School Tutoring</option>
+            <option value="mentorship">Mentorship Session</option>
+          </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="shiftDate">Date</label>
+            <input type="date" class="form-control" id="shiftDate" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="shiftCapacity">Required Chaperones</label>
+            <input type="number" class="form-control" id="shiftCapacity" min="1" max="10" value="2" required />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="shiftStartTime">Start Time</label>
+            <input type="time" class="form-control" id="shiftStartTime" value="07:00" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="shiftEndTime">End Time</label>
+            <input type="time" class="form-control" id="shiftEndTime" value="08:30" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="shiftNotes">Operational Notes</label>
+          <input type="text" class="form-control" id="shiftNotes" placeholder="e.g. Rain gear recommended; assemble at gate 2" />
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-outline" onclick="closeNewShiftModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Publish Shift
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Register New Safe Corridor -->
+  <div class="modal-overlay" id="newRouteModal">
+    <div class="modal-content">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; color:var(--text-primary);">
+        Register Safe Route Corridor
+      </h3>
+      <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1.25rem;">
+        Map a vetted pathway connecting transit hubs to schools and community centers.
+      </p>
+
+      <form id="newRouteForm" onsubmit="submitRoute(event)">
+        <div class="form-group">
+          <label class="form-label" for="routeName">Corridor Name</label>
+          <input type="text" class="form-control" id="routeName" placeholder="e.g. Route 3: West Ward → St. Jude Academy" required />
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="routeStart">Assembly / Start Point</label>
+            <input type="text" class="form-control" id="routeStart" placeholder="e.g. West Market Square" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="routeEnd">School / End Point</label>
+            <input type="text" class="form-control" id="routeEnd" placeholder="e.g. St. Jude High School" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="routeDesc">Description &amp; Safeguarding Hazards</label>
+          <textarea class="form-control" id="routeDesc" rows="3" placeholder="Paved pedestrian walkway with verified safe havens; crosses main street at signaled crosswalk..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-outline" onclick="closeNewRouteModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Save Route Corridor
+          </button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Toast Container -->
-  <div id="toastContainer" class="toast-container"></div>
+  <div class="toast-container" id="toastContainer"></div>
 
   <!-- App Footer -->
   <footer class="app-footer">
-    <p>Project C.M.S.R &bull; Community Mentorship &amp; Safe Route Coordinator &bull; Deployed on <a href="https://render.com" target="_blank" rel="noopener">Render</a> &bull; <a href="https://github.com/Katlyn627/Project-C.M.S.R" target="_blank" rel="noopener">GitHub Repository</a></p>
+    <div class="footer-inner">
+      <div>
+        <strong>Project C.M.S.R.</strong> — Community-Monitored Safe Routes &amp; Child Safeguarding Dispatch.
+      </div>
+      <div>
+        Hardware AES-256-GCM Encryption &bull; Pure JavaScript Embedded Engine &bull; USSD Gateway Simulation
+      </div>
+    </div>
   </footer>
 
-  <!-- Scripts -->
   <script src="/js/app.js"></script>
 </body>
 </html>

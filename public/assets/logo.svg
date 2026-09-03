@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="50%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="shieldGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#065f46" stop-opacity="0" />
+    </linearGradient>
+    <!-- Route Ribbon Gradient -->
+    <linearGradient id="routeGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <!-- Figure Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#042f2e" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Outer Protective Shield -->
+  <path d="M200,24 C286,24 350,68 350,154 C350,268 248,348 200,376 C152,348 50,268 50,154 C50,68 114,24 200,24 Z" 
+        fill="url(#shieldGrad)" 
+        filter="url(#softShadow)" />
+
+  <!-- Shield Inner Border Stroke -->
+  <path d="M200,36 C276,36 336,76 336,154 C336,256 242,332 200,358 C158,332 64,256 64,154 C64,76 124,36 200,36 Z" 
+        fill="none" 
+        stroke="#5eead4" 
+        stroke-width="3" 
+        stroke-opacity="0.4" />
+
+  <!-- Subtle Shield Highlight -->
+  <path d="M200,44 C268,44 322,80 322,154 C322,230 260,296 200,332 C140,296 78,230 78,154 C78,80 132,44 200,44 Z" 
+        fill="url(#shieldGlow)" />
+
+  <!-- Safe Route Pathway (Winding Walking Bus Corridor) -->
+  <path d="M125,310 C145,260 255,250 250,195 C245,150 165,145 195,95" 
+        fill="none" 
+        stroke="url(#routeGrad)" 
+        stroke-width="16" 
+        stroke-linecap="round" />
+
+  <!-- Route Pathway Center Guide Dashes -->
+  <path d="M125,310 C145,260 255,250 250,195 C245,150 165,145 195,95" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="3" 
+        stroke-dasharray="6,8" 
+        stroke-linecap="round" 
+        stroke-opacity="0.85" />
+
+  <!-- Waypoint 1: Assembly Hub (Base) -->
+  <circle cx="125" cy="310" r="10" fill="#f59e0b" stroke="#ffffff" stroke-width="3" />
+  
+  <!-- Waypoint 2: Checkpoint Station (Midway) -->
+  <circle cx="250" cy="195" r="9" fill="#0284c7" stroke="#ffffff" stroke-width="3" />
+
+  <!-- Waypoint 3: Safe Destination Beacon (Apex) -->
+  <g transform="translate(195, 95)">
+    <!-- Beacon Pulsing Rings -->
+    <circle cx="0" cy="0" r="22" fill="none" stroke="#38bdf8" stroke-width="2" stroke-opacity="0.5" />
+    <circle cx="0" cy="0" r="14" fill="#38bdf8" stroke="#ffffff" stroke-width="3" />
+    <!-- 8-Point Compass Star -->
+    <path d="M0,-11 L3,-3 L11,0 L3,3 L0,11 L-3,3 L-11,0 L-3,-3 Z" fill="#ffffff" />
+  </g>
+
+  <!-- Community Chaperone & Student Figures (Escort Partnership) -->
+  <g transform="translate(148, 175)">
+    <!-- Volunteer Chaperone (Taller) -->
+    <!-- Head -->
+    <circle cx="15" cy="0" r="9" fill="url(#goldGrad)" />
+    <!-- Torso / Moving forward -->
+    <path d="M6,13 C6,13 15,10 24,13 C26,20 28,34 27,42 C20,43 10,43 3,42 C2,34 4,20 6,13 Z" fill="#ffffff" />
+    <!-- Escort arm extending to guide student -->
+    <path d="M22,18 C28,24 32,29 36,33" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+    <!-- Legs in walking gait -->
+    <path d="M9,42 L6,60 M21,42 L25,58" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Student / Mentee (Slightly smaller, walking safely beside chaperone) -->
+    <!-- Head -->
+    <circle cx="44" cy="12" r="7.5" fill="url(#goldGrad)" />
+    <!-- Torso -->
+    <path d="M37,23 C37,23 44,20 51,23 C53,29 54,40 53,46 C47,47 40,47 35,46 C34,40 35,29 37,23 Z" fill="#fef08a" />
+    <!-- Legs -->
+    <path d="M39,46 L37,60 M49,46 L53,59" stroke="#fef08a" stroke-width="3.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Protective Radiance Stars -->
+  <path d="M98,90 L101,98 L109,101 L101,104 L98,112 L95,104 L87,101 L95,98 Z" fill="#fef08a" opacity="0.8" />
+  <path d="M305,105 L307,111 L313,113 L307,115 L305,121 L303,115 L297,113 L303,111 Z" fill="#38bdf8" opacity="0.8" />
+</svg>
+

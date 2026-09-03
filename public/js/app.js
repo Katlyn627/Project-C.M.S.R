@@ -1,5 +1,10 @@
 'use strict';
 
+/* ==========================================================================
+   Project C.M.S.R — Client Application Controller
+   Civic Daylight Architecture & Real-Time Dispatch Engine
+   ========================================================================== */
+
 // Application State
 const state = {
   token: localStorage.getItem('cmsr_token') || null,
@@ -10,12 +15,49 @@ const state = {
   volunteers: [],
   incidents: [],
   smsLogs: [],
+  supervisorDecrypted: true,
+  currentAssignShiftId: null,
   ussd: {
-    phoneNumber: '+256701234567',
+    phoneNumber: '+256707654321',
     sessionId: 'sess_' + Date.now(),
     text: '',
-    screenText: 'CON Welcome to CMSR Volunteer Dispatch\n1. Confirm Shift Assignment\n2. Report Safe Route Arrival\n3. Report Urgent Issue\n4. Contact Coordinator',
+    inputBuffer: '',
+    screenText: 'CON Welcome to CMSR\n1. Confirm shift\n2. Report issue\n3. Safe arrival',
     isEnded: false,
+  }
+};
+
+// Waypoint Intelligence Data
+const WAYPOINT_INTEL = {
+  1: {
+    name: 'Assembly Point (Central Transit Hub)',
+    type: 'Roll-Call & Parent Drop-off Point',
+    details: 'Active Escort: Amara Okafor | High-visibility vests & whistle packs issued | Roll-call ratio 1:6 compliant.',
+    schedule: 'Assembly Window: 06:45 – 07:15 AM'
+  },
+  2: {
+    name: 'Checkpoint Alpha (Market Footbridge)',
+    type: 'Pedestrian Chaperone Station',
+    details: 'Narrow footbridge choke point. Volunteer monitors pedestrian flow and guides students across steps safely.',
+    schedule: 'Stationed: 07:15 – 07:40 AM'
+  },
+  3: {
+    name: 'Safe Haven Refuge (Market Pharmacy)',
+    type: 'Designated Community Emergency Refuge',
+    details: 'First-aid certified staff on premise. Official safe haven business equipped with emergency telephone and water.',
+    schedule: 'Continuous On-Call Refuge'
+  },
+  4: {
+    name: 'Hazard Watchpoint (Railway Crossing Gate)',
+    type: 'Train Crossing & Heavy Traffic Corridor',
+    details: 'Active crossing guard advisory. Volunteers ensure cohort halts 5 meters before tracks when signals flash.',
+    schedule: 'Stationed: 07:45 – 08:10 AM'
+  },
+  5: {
+    name: 'School Terminal (St. Mary Girls High School)',
+    type: 'Final Destination & Parent Broadcast Hub',
+    details: 'Gatekeeper verification sign-in. Triggers automated Parent Safe Arrival SMS broadcast to guardian mobile phones.',
+    schedule: 'Arrival Window: 08:10 – 08:25 AM'
   }
 };
 
@@ -49,9 +91,20 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
+// Theme Switcher (Daylight Civic vs Night Operations)
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('cmsr_theme', next);
+  showToast(`Switched to ${next === 'dark' ? 'Operations Night' : 'Civic Daylight'} theme`, 'info');
+}
+
 // Health Check Ping
 async function checkHealth() {
   const healthEl = document.getElementById('healthStatus');
+  if (!healthEl) return;
   const start = Date.now();
   try {
     const res = await fetch('/health');
@@ -61,11 +114,33 @@ async function checkHealth() {
       healthEl.innerHTML = `<span class="pulse-dot"></span> Online (${lat}ms)`;
     }
   } catch {
-    healthEl.innerHTML = `<span class="pulse-dot" style="background:var(--badge-rose)"></span> Offline`;
+    healthEl.innerHTML = `<span class="pulse-dot" style="background:var(--rose-500)"></span> Offline`;
   }
 }
 
-// Auth & Quick Demo Switcher
+// Interactive Waypoint Selector
+function selectWaypoint(idx) {
+  document.querySelectorAll('.waypoint-step').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === idx);
+  });
+  const data = WAYPOINT_INTEL[idx] || WAYPOINT_INTEL[1];
+  const intelEl = document.getElementById('waypointIntel');
+  if (intelEl) {
+    intelEl.innerHTML = `
+      <div>
+        <strong>Selected Station: ${data.name}</strong> — ${data.type}.
+        <div style="color:var(--text-secondary); margin-top:2px;">
+          ${data.details} &bull; <em>${data.schedule}</em>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="switchTab('shifts')">
+        Manage Dispatch
+      </button>
+    `;
+  }
+}
+
+// Persona & Demo Role Switcher
 async function quickLogin(role) {
   try {
     const res = await api('/api/demo/quick-login', {
@@ -77,41 +152,62 @@ async function quickLogin(role) {
     localStorage.setItem('cmsr_token', res.token);
     localStorage.setItem('cmsr_user', JSON.stringify(res.user));
     updateUserBar();
-    showToast(`Switched role to ${res.user.role.toUpperCase()} (${res.user.full_name})`, 'success');
+    showToast(`Assumed role: ${res.user.role.toUpperCase()} (${res.user.full_name})`, 'success');
     refreshActiveTab();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-function logout() {
-  state.token = null;
-  state.user = null;
-  localStorage.removeItem('cmsr_token');
-  localStorage.removeItem('cmsr_user');
-  quickLogin('coordinator'); // default back to coordinator for portfolio demo
-}
-
 function updateUserBar() {
   const user = state.user;
-  const userBar = document.getElementById('currentUserDisplay');
-  if (!userBar) return;
-  if (user) {
-    userBar.innerHTML = `
-      <span>👤 <strong>${user.full_name}</strong></span>
-      <span class="role-badge role-${user.role}">${user.role}</span>
-    `;
-  } else {
-    userBar.innerHTML = `<span>Not authenticated</span>`;
+  const avatarEl = document.getElementById('userAvatar');
+  const nameEl = document.getElementById('userName');
+  const badgeEl = document.getElementById('userBadge');
+  const permEl = document.getElementById('userPermissions');
+
+  if (!user) return;
+
+  const initials = user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'U';
+  if (avatarEl) {
+    avatarEl.innerText = initials;
+    avatarEl.className = `identity-avatar ${user.role}`;
   }
+  if (nameEl) nameEl.innerText = user.full_name;
+  if (badgeEl) {
+    badgeEl.innerText = user.role.toUpperCase();
+    badgeEl.className = `identity-badge ${user.role}`;
+  }
+
+  const roleDescriptions = {
+    coordinator: 'Full Clearance: Walking-Bus Dispatch, Route Management, Decrypted Safeguarding Desk',
+    volunteer: 'Field Clearance: Chaperone Roster, Walking-Bus Shifts, Field Incident Reporting',
+    admin: 'System Director Clearance: Administrative Oversight, Incident Auditing, Telecom Logs',
+    viewer: 'Community Observer: Read-Only Overview & Public Route Information',
+  };
+
+  if (permEl) {
+    permEl.innerText = roleDescriptions[user.role] || 'Standard Access';
+  }
+
+  // Update button active state
+  ['Coord', 'Vol', 'Admin', 'Viewer'].forEach(k => {
+    const btn = document.getElementById(`btnRole${k}`);
+    if (btn) btn.classList.remove('active');
+  });
+  if (user.role === 'coordinator' && document.getElementById('btnRoleCoord')) document.getElementById('btnRoleCoord').classList.add('active');
+  if (user.role === 'volunteer' && document.getElementById('btnRoleVol')) document.getElementById('btnRoleVol').classList.add('active');
+  if (user.role === 'admin' && document.getElementById('btnRoleAdmin')) document.getElementById('btnRoleAdmin').classList.add('active');
+  if (user.role === 'viewer' && document.getElementById('btnRoleViewer')) document.getElementById('btnRoleViewer').classList.add('active');
 }
 
-// Demo Data Seeder
+// Seed Demo Data
 async function seedDemoData() {
   try {
     await api('/api/demo/seed', { method: 'POST' });
-    showToast('Demo data seeded successfully with realistic routes, shifts & incidents!', 'success');
+    showToast('Demo data seeded with verified corridors, chaperones, shifts & incidents!', 'success');
     await loadAllData();
+    refreshActiveTab();
   } catch (err) {
     showToast(err.message, 'error');
   }
@@ -131,9 +227,9 @@ function switchTab(tabId) {
 
 function refreshActiveTab() {
   if (state.currentTab === 'dashboard') loadDashboard();
-  if (state.currentTab === 'shifts') loadShiftsView();
-  if (state.currentTab === 'incidents') loadIncidentsView();
-  if (state.currentTab === 'ussd') loadUssdView();
+  if (state.currentTab === 'shifts') loadShiftsTab();
+  if (state.currentTab === 'incidents') loadIncidentsTab();
+  if (state.currentTab === 'ussd') loadUssdTab();
 }
 
 // Data Loaders
@@ -188,289 +284,251 @@ async function loadSmsLogs() {
   }
 }
 
-// 1. Dashboard View
+// 1. Dashboard Overview Tab
 async function loadDashboard() {
   try {
     const status = await api('/api/demo/status');
-    document.getElementById('metricVolunteers').innerText = status.counts.volunteers;
-    document.getElementById('metricShifts').innerText = status.counts.shifts;
-    document.getElementById('metricIncidents').innerText = status.counts.incidents;
-    document.getElementById('metricSms').innerText = status.counts.sms;
+    if (document.getElementById('metricVolunteers')) document.getElementById('metricVolunteers').innerText = status.counts.volunteers;
+    if (document.getElementById('metricShifts')) document.getElementById('metricShifts').innerText = status.counts.shifts;
+    if (document.getElementById('metricRoutes')) document.getElementById('metricRoutes').innerText = status.counts.routes;
+    if (document.getElementById('metricIncidents')) document.getElementById('metricIncidents').innerText = status.counts.incidents;
   } catch {
-    document.getElementById('metricVolunteers').innerText = state.volunteers.length;
-    document.getElementById('metricShifts').innerText = state.shifts.length;
-    document.getElementById('metricIncidents').innerText = state.incidents.length;
-    document.getElementById('metricSms').innerText = state.smsLogs.length;
-  }
-
-  // Render recent shifts summary table
-  const recentShiftsTbody = document.getElementById('recentShiftsTbody');
-  if (recentShiftsTbody) {
-    if (!state.shifts.length) {
-      recentShiftsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No shifts scheduled. Click "Seed Demo Data" above.</td></tr>`;
-    } else {
-      recentShiftsTbody.innerHTML = state.shifts.slice(0, 5).map(s => `
-        <tr>
-          <td><strong>${s.route_name || 'Designated Route'}</strong></td>
-          <td><span class="badge ${s.shift_type === 'walking_bus' ? 'badge-under_review' : 'badge-open'}">${s.shift_type.replace('_', ' ').toUpperCase()}</span></td>
-          <td>${s.scheduled_date} &bull; ${s.start_time} - ${s.end_time}</td>
-          <td>${s.assigned_count || 0} / ${s.max_volunteers}</td>
-          <td>
-            <button class="btn btn-sm btn-outline" onclick="switchTab('shifts')">View Roster</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-  }
-
-  // Render recent incidents table
-  const recentIncidentsTbody = document.getElementById('recentIncidentsTbody');
-  if (recentIncidentsTbody) {
-    if (!state.incidents.length) {
-      recentIncidentsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No incidents logged. System safe.</td></tr>`;
-    } else {
-      recentIncidentsTbody.innerHTML = state.incidents.slice(0, 5).map(inc => `
-        <tr>
-          <td><span class="badge badge-${inc.severity}">${inc.severity.toUpperCase()}</span></td>
-          <td>${inc.incident_type}</td>
-          <td>${inc.location || 'Not specified'}</td>
-          <td><span class="badge badge-${inc.status}">${inc.status.replace('_', ' ')}</span></td>
-          <td>
-            <button class="btn btn-sm btn-outline" onclick="switchTab('incidents')">Details</button>
-          </td>
-        </tr>
-      `).join('');
-    }
+    if (document.getElementById('metricVolunteers')) document.getElementById('metricVolunteers').innerText = state.volunteers.length;
+    if (document.getElementById('metricShifts')) document.getElementById('metricShifts').innerText = state.shifts.length;
+    if (document.getElementById('metricRoutes')) document.getElementById('metricRoutes').innerText = state.routes.length;
+    if (document.getElementById('metricIncidents')) document.getElementById('metricIncidents').innerText = state.incidents.length;
   }
 }
 
-// 2. Shifts & Routes View
-async function loadShiftsView() {
+// 2. Safe Routes & Shifts Tab
+async function loadShiftsTab() {
   await Promise.all([loadRoutes(), loadShifts(), loadVolunteers()]);
-  
-  // Populate routes dropdown in shift form
-  const routeSelect = document.getElementById('shiftRouteSelect');
-  if (routeSelect) {
-    routeSelect.innerHTML = '<option value="">-- Select Walking Route (Optional) --</option>' + 
+  renderRoutesGrid();
+  renderShiftsGrid();
+  renderVolunteersTable();
+}
+
+function renderRoutesGrid() {
+  const container = document.getElementById('routesGrid');
+  if (!container) return;
+
+  if (!state.routes.length) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; padding:2rem; text-align:center; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:var(--text-muted);">
+        No corridors mapped yet. Click "Register Safe Corridor" above or "Seed Demo Data".
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = state.routes.map(r => `
+    <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:1.25rem; box-shadow:var(--shadow-card);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <h4 style="font-size:0.95rem; font-weight:700; color:var(--teal-700);">${r.name}</h4>
+        <span class="identity-badge coordinator">ACTIVE CORRIDOR</span>
+      </div>
+      <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:0.75rem; line-height:1.4;">
+        ${r.description || 'Verified walking corridor with assigned chaperones and refuge stations.'}
+      </p>
+      <div style="font-size:0.76rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <span>🚏 Start: <strong>${r.start_point}</strong></span> &bull; 
+        <span>🏫 End: <strong>${r.end_point}</strong></span>
+      </div>
+    </div>
+  `).join('');
+
+  // Populate shift modal select
+  const select = document.getElementById('shiftRouteSelect');
+  if (select) {
+    select.innerHTML = '<option value="">-- Choose Corridor --</option>' + 
       state.routes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
   }
-
-  // Render Routes List
-  const routesList = document.getElementById('routesContainer');
-  if (routesList) {
-    if (!state.routes.length) {
-      routesList.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem">No walking routes defined. Use the form below or Seed Demo Data.</p>`;
-    } else {
-      routesList.innerHTML = state.routes.map(r => `
-        <div class="card" style="background:var(--bg-input);margin-bottom:0.75rem;padding:1rem">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-            <h4 style="color:var(--brand-cyan);font-size:0.95rem">${r.name}</h4>
-            <span class="badge badge-resolved">ACTIVE CORRIDOR</span>
-          </div>
-          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.4rem">${r.description || ''}</p>
-          <div style="font-size:0.78rem;color:var(--text-muted)">
-            <span>📍 Start: <strong>${r.start_point}</strong></span> &bull; <span>🏁 End: <strong>${r.end_point}</strong></span>
-          </div>
-        </div>
-      `).join('');
-    }
-  }
-
-  // Render Shifts Table
-  const shiftsTbody = document.getElementById('shiftsFullTbody');
-  if (shiftsTbody) {
-    if (!state.shifts.length) {
-      shiftsTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No active shifts.</td></tr>`;
-    } else {
-      shiftsTbody.innerHTML = state.shifts.map(s => {
-        const isFull = (s.assigned_count || 0) >= s.max_volunteers;
-        return `
-          <tr>
-            <td><strong>${s.route_name || 'Designated Route'}</strong></td>
-            <td><span class="badge ${s.shift_type === 'walking_bus' ? 'badge-under_review' : 'badge-open'}">${s.shift_type.replace('_', ' ').toUpperCase()}</span></td>
-            <td>${s.scheduled_date}<br><small style="color:var(--text-muted)">${s.start_time} - ${s.end_time}</small></td>
-            <td>
-              <span class="badge ${isFull ? 'badge-medium' : 'badge-low'}">${s.assigned_count || 0} / ${s.max_volunteers} volunteers</span>
-            </td>
-            <td>${s.notes || '&mdash;'}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclick="openAssignModal(${s.id}, '${s.shift_type}')" ${isFull ? 'disabled' : ''}>
-                ${isFull ? 'Full' : '+ Assign'}
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-  }
-
-  // Render Volunteers Roster table
-  const volunteersTbody = document.getElementById('volunteersTbody');
-  if (volunteersTbody) {
-    if (!state.volunteers.length) {
-      volunteersTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No volunteer profiles found (requires Coordinator or Admin role).</td></tr>`;
-    } else {
-      volunteersTbody.innerHTML = state.volunteers.map(v => `
-        <tr>
-          <td><strong>${v.full_name}</strong><br><small style="color:var(--text-muted)">@${v.username}</small></td>
-          <td>${v.phone || '&mdash;'}</td>
-          <td>${v.skills || 'Walking escort'}</td>
-          <td>${v.availability || 'Flexible'}</td>
-          <td>
-            <span class="badge ${v.background_checked ? 'badge-resolved' : 'badge-medium'}">
-              ${v.background_checked ? '✅ Verified' : '⏳ Pending'}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-outline" onclick="sendVolunteerShiftReminder(${v.id}, '${v.phone}')">
-              📲 SMS Reminder
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-  }
 }
 
-// Create Route
-async function handleCreateRoute(e) {
-  e.preventDefault();
-  const name = document.getElementById('routeName').value.trim();
-  const start_point = document.getElementById('routeStart').value.trim();
-  const end_point = document.getElementById('routeEnd').value.trim();
-  const description = document.getElementById('routeDesc').value.trim();
-  try {
-    await api('/shifts/routes', {
-      method: 'POST',
-      body: JSON.stringify({ name, start_point, end_point, description }),
-    });
-    showToast('Safe walking route added!', 'success');
-    document.getElementById('createRouteForm').reset();
-    loadShiftsView();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
+function renderShiftsGrid() {
+  const container = document.getElementById('shiftsGrid');
+  if (!container) return;
 
-// Create Shift
-async function handleCreateShift(e) {
-  e.preventDefault();
-  const route_id = document.getElementById('shiftRouteSelect').value || null;
-  const shift_type = document.getElementById('shiftType').value;
-  const scheduled_date = document.getElementById('shiftDate').value;
-  const start_time = document.getElementById('shiftStart').value;
-  const end_time = document.getElementById('shiftEnd').value;
-  const max_volunteers = parseInt(document.getElementById('shiftMaxVolunteers').value, 10) || 2;
-  const notes = document.getElementById('shiftNotes').value.trim();
-
-  try {
-    await api('/shifts', {
-      method: 'POST',
-      body: JSON.stringify({ route_id, shift_type, scheduled_date, start_time, end_time, max_volunteers, notes }),
-    });
-    showToast('Shift scheduled successfully!', 'success');
-    document.getElementById('createShiftForm').reset();
-    loadShiftsView();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-// Volunteer Assignment
-let currentAssignShiftId = null;
-function openAssignModal(shiftId, shiftType) {
-  currentAssignShiftId = shiftId;
-  const select = document.getElementById('assignVolunteerSelect');
-  if (select) {
-    select.innerHTML = '<option value="">-- Choose Verified Volunteer --</option>' +
-      state.volunteers.map(v => `<option value="${v.id}">${v.full_name} (${v.skills || 'Escort'})</option>`).join('');
-  }
-  document.getElementById('assignModal').classList.add('active');
-}
-
-function closeAssignModal() {
-  document.getElementById('assignModal').classList.remove('active');
-  currentAssignShiftId = null;
-}
-
-async function handleAssignVolunteer(e) {
-  e.preventDefault();
-  const volunteer_id = document.getElementById('assignVolunteerSelect').value;
-  if (!volunteer_id || !currentAssignShiftId) {
-    showToast('Please select a volunteer.', 'error');
-    return;
-  }
-  try {
-    await api(`/shifts/${currentAssignShiftId}/assign`, {
-      method: 'POST',
-      body: JSON.stringify({ volunteer_id }),
-    });
-    showToast('Volunteer successfully assigned to shift roster!', 'success');
-    closeAssignModal();
-    loadShiftsView();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-async function sendVolunteerShiftReminder(volunteerId, phone) {
-  try {
-    await api(`/volunteers/${volunteerId}/notify-shift`, { method: 'POST' });
-    showToast(`Shift reminder SMS sent to ${phone || 'volunteer'}!`, 'success');
-    loadSmsLogs();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-}
-
-// 3. Safeguarding & Incident Desk View
-async function loadIncidentsView() {
-  await loadIncidents();
-  const tbody = document.getElementById('incidentsFullTbody');
-  if (!tbody) return;
-
-  const isCoordOrAdmin = state.user && (state.user.role === 'coordinator' || state.user.role === 'admin');
-
-  if (!state.incidents.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No safeguarding incidents reported. Safe routes operating normally.</td></tr>`;
+  if (!state.shifts.length) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; padding:2rem; text-align:center; color:var(--text-muted);">
+        No scheduled shifts. Click "Schedule New Shift" or "Seed Demo Data".
+      </div>
+    `;
     return;
   }
 
-  tbody.innerHTML = state.incidents.map(inc => {
-    // If coordinator/admin, show details or fetch detail
-    const detailsHtml = isCoordOrAdmin && inc.description
-      ? `<div style="font-size:0.85rem">${inc.description}</div>${inc.involved_parties ? `<small style="color:var(--text-muted)">Parties: ${inc.involved_parties}</small>` : ''}`
-      : `<span style="font-size:0.78rem;color:var(--text-muted)">🔒 AES-256-GCM Encrypted at rest (Coordinator+ clearance)</span>`;
+  container.innerHTML = state.shifts.map(s => {
+    const assigned = s.assigned_count || 0;
+    const max = s.max_volunteers || 2;
+    const percent = Math.min(100, Math.round((assigned / max) * 100));
+    const isFull = assigned >= max;
 
     return `
-      <tr>
-        <td><strong>#${inc.id}</strong></td>
-        <td><span class="badge badge-${inc.severity}">${inc.severity.toUpperCase()}</span></td>
-        <td>${inc.incident_type}</td>
-        <td>${inc.location || 'Route corridor'}</td>
-        <td style="max-width:300px">${detailsHtml}</td>
-        <td>
-          <select class="form-control" style="padding:0.2rem 0.4rem;font-size:0.75rem;width:auto" onchange="updateIncidentStatus(${inc.id}, this.value)" ${isCoordOrAdmin ? '' : 'disabled'}>
-            <option value="open" ${inc.status === 'open' ? 'selected' : ''}>Open</option>
-            <option value="under_review" ${inc.status === 'under_review' ? 'selected' : ''}>Under Review</option>
-            <option value="resolved" ${inc.status === 'resolved' ? 'selected' : ''}>Resolved</option>
-            <option value="escalated" ${inc.status === 'escalated' ? 'selected' : ''}>Escalated</option>
-          </select>
-        </td>
-        <td style="font-size:0.75rem;color:var(--text-muted)">${new Date(inc.created_at).toLocaleDateString()}</td>
-      </tr>
+      <div class="shift-card">
+        <div class="shift-card-header">
+          <span class="shift-type-pill ${s.shift_type}">${s.shift_type.replace('_', ' ')}</span>
+          <span class="shift-date-badge">📅 ${s.scheduled_date}</span>
+        </div>
+
+        <h4 class="shift-route-title">${s.route_name || 'Designated Safe Corridor'}</h4>
+        
+        <div class="shift-time-range">
+          <span>⏰ ${s.start_time} – ${s.end_time}</span>
+          <span>&bull;</span>
+          <span>${s.notes || 'Routine escorted transit'}</span>
+        </div>
+
+        <div class="capacity-gauge">
+          <div class="capacity-meta">
+            <span>Escort Allocation</span>
+            <span>${assigned} / ${max} Chaperones</span>
+          </div>
+          <div class="capacity-bar">
+            <div class="capacity-fill ${assigned === 0 ? 'empty' : ''}" style="width: ${percent}%;"></div>
+          </div>
+        </div>
+
+        <div class="shift-actions">
+          <button class="btn btn-sm btn-primary" onclick="openAssignModal(${s.id})" ${isFull ? 'disabled style="opacity:0.6"' : ''}>
+            ${isFull ? '✓ Full' : '➕ Assign Chaperone'}
+          </button>
+        </div>
+      </div>
     `;
   }).join('');
 }
 
-async function handleReportIncident(e) {
+function renderVolunteersTable() {
+  const tbody = document.querySelector('#volunteersTable tbody');
+  if (!tbody) return;
+
+  if (!state.volunteers.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+          No volunteer profiles loaded. (Requires Coordinator or Admin session).
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = state.volunteers.map(v => `
+    <tr>
+      <td><strong>${v.full_name}</strong></td>
+      <td><span class="identity-badge volunteer">@${v.username}</span></td>
+      <td><code>${v.phone || '&mdash;'}</code></td>
+      <td>${v.skills || 'Walking Bus Escort'}</td>
+      <td>${v.availability || 'Weekdays 06:30-08:30'}</td>
+      <td>
+        <span class="identity-badge coordinator">
+          ${v.background_checked ? '✅ Vetted' : '⏳ Pending'}
+        </span>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="sendReminderSms('${v.phone}', 'Route 1')">
+          📲 Shift SMS
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// 3. Safeguarding Incident Desk Tab
+async function loadIncidentsTab() {
+  await loadIncidents();
+  renderIncidentsList();
+}
+
+function toggleDecryptionMode() {
+  state.supervisorDecrypted = !state.supervisorDecrypted;
+  const btn = document.getElementById('decryptToggleBtn');
+  if (btn) {
+    btn.innerHTML = state.supervisorDecrypted 
+      ? '🔒 Show Encrypted Ciphertext' 
+      : '🔓 Decrypt Supervisor View';
+  }
+  renderIncidentsList();
+}
+
+function renderIncidentsList() {
+  const container = document.getElementById('incidentsList');
+  const countBadge = document.getElementById('incidentCountBadge');
+  if (!container) return;
+
+  if (countBadge) countBadge.innerText = `${state.incidents.length} INCIDENTS`;
+
+  const isSupervisor = state.user && (state.user.role === 'coordinator' || state.user.role === 'admin');
+
+  if (!state.incidents.length) {
+    container.innerHTML = `
+      <div style="padding:2rem; text-align:center; color:var(--text-muted);">
+        No safeguarding incidents logged. Corridors safe and normal.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = state.incidents.map(inc => {
+    const isDecrypted = isSupervisor && state.supervisorDecrypted && inc.description;
+    const descDisplay = isDecrypted 
+      ? inc.description 
+      : '🔒 [ENCRYPTED AT REST] Ciphertext payload protected with AES-256-GCM hardware key. Coordinator/Admin clearance required to audit.';
+    const partiesDisplay = isDecrypted && inc.involved_parties
+      ? `<div style="font-size:0.78rem; color:var(--teal-700); margin-top:0.35rem;"><strong>Involved:</strong> ${inc.involved_parties}</div>`
+      : '';
+
+    return `
+      <div class="incident-card">
+        <div class="incident-card-top">
+          <div class="incident-badges">
+            <span class="badge-severity ${inc.severity}">${inc.severity}</span>
+            <span class="identity-badge coordinator">${inc.incident_type.replace('_', ' ')}</span>
+            ${inc.safeguarding_referral ? '<span class="badge-referral">⚠️ Child Protection Referral</span>' : ''}
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-secondary);">
+            Logged: ${new Date(inc.created_at).toLocaleString()}
+          </div>
+        </div>
+
+        <div class="incident-location">
+          <span>📍</span>
+          <span>${inc.location || 'Corridor Checkpoint'}</span>
+        </div>
+
+        <div class="incident-encrypted-box ${isDecrypted ? 'decrypted' : ''}">
+          <div>${descDisplay}</div>
+          ${partiesDisplay}
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <div style="font-size:0.78rem; color:var(--text-secondary);">
+            Reported by: <strong>${inc.reporter_name || 'Anonymous Staff'}</strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:0.75rem; font-weight:600; color:var(--text-secondary);">Status:</span>
+            <select class="form-control" style="padding:0.25rem 0.5rem; font-size:0.75rem; width:auto;" onchange="updateIncidentStatus(${inc.id}, this.value)" ${isSupervisor ? '' : 'disabled'}>
+              <option value="open" ${inc.status === 'open' ? 'selected' : ''}>Open</option>
+              <option value="under_review" ${inc.status === 'under_review' ? 'selected' : ''}>Under Review</option>
+              <option value="resolved" ${inc.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+              <option value="escalated" ${inc.status === 'escalated' ? 'selected' : ''}>Escalated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function submitIncident(e) {
   e.preventDefault();
   const incident_type = document.getElementById('incType').value;
   const severity = document.getElementById('incSeverity').value;
   const location = document.getElementById('incLocation').value.trim();
-  const description = document.getElementById('incDesc').value.trim();
   const involved_parties = document.getElementById('incParties').value.trim();
-  const safeguarding_referral = document.getElementById('incReferral').checked;
+  const description = document.getElementById('incDescription').value.trim();
+  const safeguarding_referral = document.getElementById('incSafeguarding').checked;
 
   try {
     await api('/incidents', {
@@ -479,88 +537,84 @@ async function handleReportIncident(e) {
         incident_type,
         severity,
         location,
-        description,
         involved_parties,
+        description,
         safeguarding_referral,
       }),
     });
-    showToast('Incident safely encrypted with AES-256-GCM and submitted!', 'success');
-    document.getElementById('reportIncidentForm').reset();
-    loadIncidentsView();
+    showToast('Field incident encrypted with AES-256-GCM and submitted!', 'success');
+    document.getElementById('incidentForm').reset();
+    await loadIncidents();
+    renderIncidentsList();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-async function updateIncidentStatus(incidentId, status) {
+async function updateIncidentStatus(id, status) {
   try {
-    await api(`/incidents/${incidentId}/status`, {
+    await api(`/incidents/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
-    showToast(`Incident #${incidentId} status updated to ${status.replace('_', ' ')}`, 'success');
-    loadIncidentsView();
+    showToast(`Incident #${id} status updated to ${status.replace('_', ' ').toUpperCase()}`, 'success');
+    await loadIncidents();
+    renderIncidentsList();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-// 4. USSD & SMS Simulator View
-async function loadUssdView() {
+// 4. USSD & Last-Mile SMS Studio Tab
+async function loadUssdTab() {
   await loadSmsLogs();
   renderSmsOutbox();
 }
 
 function renderSmsOutbox() {
-  const tbody = document.getElementById('smsOutboxTbody');
+  const tbody = document.querySelector('#smsTable tbody');
   if (!tbody) return;
+
   if (!state.smsLogs.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">SMS Outbox empty. Trigger safe arrival or shift reminders above.</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+          No notifications recorded in outbox. Trigger safe arrival or reminders above.
+        </td>
+      </tr>
+    `;
     return;
   }
+
   tbody.innerHTML = state.smsLogs.map(sms => `
     <tr>
+      <td style="font-size:0.78rem; color:var(--text-secondary);">${new Date(sms.created_at).toLocaleTimeString()}</td>
+      <td><span class="identity-badge coordinator">${sms.notification_type}</span></td>
       <td><code>${sms.recipient_phone}</code></td>
-      <td style="font-size:0.82rem">${sms.message}</td>
-      <td><span class="badge badge-under_review">${sms.notification_type}</span></td>
-      <td><span class="badge badge-resolved">DELIVERED</span></td>
-      <td style="font-size:0.75rem;color:var(--text-muted)">${new Date(sms.created_at).toLocaleTimeString()}</td>
+      <td><span class="identity-badge volunteer">SENT</span></td>
+      <td style="font-size:0.8rem; max-width:380px;">${sms.message}</td>
     </tr>
   `).join('');
 }
 
-// Parent Safe Arrival SMS Trigger
-async function handleSafeArrivalSMS(e) {
-  e.preventDefault();
-  const parent_phone = document.getElementById('arrivalPhone').value.trim();
-  const child_name = document.getElementById('arrivalChildName').value.trim();
-  const location = document.getElementById('arrivalLocation').value.trim();
-
-  try {
-    const res = await api('/sms/safe-arrival', {
-      method: 'POST',
-      body: JSON.stringify({ parent_phone, child_name, location }),
-    });
-    showToast(`Safe arrival SMS sent to parent (${parent_phone})!`, 'success');
-    document.getElementById('safeArrivalForm').reset();
-    await loadSmsLogs();
-    renderSmsOutbox();
-  } catch (err) {
-    showToast(err.message, 'error');
+// USSD Keypad State & Dialing
+function ussdPress(key) {
+  state.ussd.inputBuffer += key;
+  const screenEl = document.getElementById('ussdScreen');
+  if (screenEl) {
+    screenEl.innerText = state.ussd.screenText + '\n\n> ' + state.ussd.inputBuffer;
   }
 }
 
-// USSD Keypad & Simulator Machine
-async function submitUssdInput() {
-  const inputEl = document.getElementById('ussdInput');
-  const entered = inputEl.value.trim();
-  inputEl.value = '';
+async function ussdSend() {
+  const entered = state.ussd.inputBuffer.trim();
+  state.ussd.inputBuffer = '';
 
   let newText = state.ussd.text ? `${state.ussd.text}*${entered}` : entered;
   state.ussd.text = newText;
 
-  const screenEl = document.getElementById('ussdScreenContent');
-  screenEl.innerText = 'Connecting to CMSR Gateway...\n';
+  const screenEl = document.getElementById('ussdScreen');
+  if (screenEl) screenEl.innerText = 'Connecting to CMSR Gateway...\n';
 
   try {
     const res = await fetch('/sms/ussd-hook', {
@@ -574,43 +628,191 @@ async function submitUssdInput() {
     });
     const textOutput = await res.text();
     state.ussd.screenText = textOutput;
-    screenEl.innerText = textOutput;
+    if (screenEl) screenEl.innerText = textOutput;
     if (textOutput.startsWith('END')) {
       state.ussd.isEnded = true;
-      document.getElementById('ussdInputRow').style.display = 'none';
       showToast('USSD session completed', 'info');
       await loadSmsLogs();
       renderSmsOutbox();
     }
   } catch {
-    screenEl.innerText = 'Network timeout. Dial again.\n';
+    if (screenEl) screenEl.innerText = 'Network timeout. Dial again.\n';
   }
 }
 
-function ussdKeypadPress(val) {
-  const inputEl = document.getElementById('ussdInput');
-  if (inputEl) inputEl.value += val;
-}
-
-function resetUssdSession() {
+function ussdReset() {
   state.ussd.sessionId = 'sess_' + Date.now();
   state.ussd.text = '';
+  state.ussd.inputBuffer = '';
   state.ussd.isEnded = false;
-  state.ussd.screenText = 'CON Welcome to CMSR Volunteer Dispatch\n1. Confirm Shift Assignment\n2. Report Safe Route Arrival\n3. Report Urgent Issue\n4. Contact Coordinator';
-  document.getElementById('ussdScreenContent').innerText = state.ussd.screenText;
-  document.getElementById('ussdInputRow').style.display = 'flex';
-  document.getElementById('ussdInput').value = '';
+  state.ussd.screenText = 'CON Welcome to CMSR\n1. Confirm shift\n2. Report issue\n3. Safe arrival';
+  const screenEl = document.getElementById('ussdScreen');
+  if (screenEl) screenEl.innerText = state.ussd.screenText;
 }
 
-// Initialization on DOM Ready
-document.addEventListener('DOMContentLoaded', async () => {
-  // Set default date in shift creation
-  const shiftDateInput = document.getElementById('shiftDate');
-  if (shiftDateInput) {
-    shiftDateInput.value = new Date().toISOString().slice(0, 10);
+// Parent Safe Arrival SMS Trigger
+async function sendSafeArrivalSms() {
+  const child_name = document.getElementById('smsStudentName').value.trim();
+  const parent_phone = document.getElementById('smsParentPhone').value.trim();
+  if (!child_name || !parent_phone) {
+    showToast('Please enter both student name and phone number', 'error');
+    return;
   }
 
-  // If no user, quick login as coordinator so portfolio demo is immediately interactive
+  try {
+    await api('/sms/safe-arrival', {
+      method: 'POST',
+      body: JSON.stringify({
+        child_name,
+        parent_phone,
+        location: 'St. Mary Girls High School',
+      }),
+    });
+    showToast(`Arrival SMS dispatched to guardian (${parent_phone})!`, 'success');
+    await loadSmsLogs();
+    renderSmsOutbox();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function sendReminderSms(phone, routeName) {
+  try {
+    await api('/sms/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        recipient_phone: phone || '+256707654321',
+        message: `CMSR Shift Reminder: You are rostered for ${routeName} Walking-Bus tomorrow at 07:00 AM. Reply 1 to confirm.`,
+        notification_type: 'shift_reminder',
+      }),
+    });
+    showToast(`Shift reminder dispatched to ${phone}!`, 'success');
+    await loadSmsLogs();
+    renderSmsOutbox();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// Modals Management
+function openAssignModal(shiftId) {
+  state.currentAssignShiftId = shiftId;
+  const select = document.getElementById('assignVolunteerSelect');
+  if (select) {
+    select.innerHTML = '<option value="">-- Choose Vetted Volunteer --</option>' +
+      state.volunteers.map(v => `<option value="${v.id}">${v.full_name} (${v.skills || 'Escort'})</option>`).join('');
+  }
+  document.getElementById('assignShiftId').value = shiftId;
+  document.getElementById('assignModal').classList.add('active');
+}
+
+function closeAssignModal() {
+  document.getElementById('assignModal').classList.remove('active');
+  state.currentAssignShiftId = null;
+}
+
+async function assignVolunteer(e) {
+  e.preventDefault();
+  const shiftId = state.currentAssignShiftId;
+  const volunteer_id = document.getElementById('assignVolunteerSelect').value;
+  if (!shiftId || !volunteer_id) {
+    showToast('Please choose a volunteer', 'error');
+    return;
+  }
+  try {
+    await api(`/shifts/${shiftId}/assign`, {
+      method: 'POST',
+      body: JSON.stringify({ volunteer_id }),
+    });
+    showToast('Volunteer successfully assigned to walking bus!', 'success');
+    closeAssignModal();
+    await loadShifts();
+    renderShiftsGrid();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function openNewShiftModal() {
+  const shiftDate = document.getElementById('shiftDate');
+  if (shiftDate) shiftDate.value = new Date().toISOString().slice(0, 10);
+  document.getElementById('newShiftModal').classList.add('active');
+}
+
+function closeNewShiftModal() {
+  document.getElementById('newShiftModal').classList.remove('active');
+}
+
+async function submitShift(e) {
+  e.preventDefault();
+  const route_id = document.getElementById('shiftRouteSelect').value || null;
+  const shift_type = document.getElementById('shiftType').value;
+  const scheduled_date = document.getElementById('shiftDate').value;
+  const start_time = document.getElementById('shiftStartTime').value;
+  const end_time = document.getElementById('shiftEndTime').value;
+  const max_volunteers = parseInt(document.getElementById('shiftCapacity').value, 10) || 2;
+  const notes = document.getElementById('shiftNotes').value.trim();
+
+  try {
+    await api('/shifts', {
+      method: 'POST',
+      body: JSON.stringify({
+        route_id,
+        shift_type,
+        scheduled_date,
+        start_time,
+        end_time,
+        max_volunteers,
+        notes,
+      }),
+    });
+    showToast('New walking bus shift scheduled!', 'success');
+    closeNewShiftModal();
+    document.getElementById('newShiftForm').reset();
+    await loadShifts();
+    renderShiftsGrid();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function openNewRouteModal() {
+  document.getElementById('newRouteModal').classList.add('active');
+}
+
+function closeNewRouteModal() {
+  document.getElementById('newRouteModal').classList.remove('active');
+}
+
+async function submitRoute(e) {
+  e.preventDefault();
+  const name = document.getElementById('routeName').value.trim();
+  const start_point = document.getElementById('routeStart').value.trim();
+  const end_point = document.getElementById('routeEnd').value.trim();
+  const description = document.getElementById('routeDesc').value.trim();
+
+  try {
+    await api('/shifts/routes', {
+      method: 'POST',
+      body: JSON.stringify({ name, start_point, end_point, description }),
+    });
+    showToast('New safe route corridor registered!', 'success');
+    closeNewRouteModal();
+    document.getElementById('newRouteForm').reset();
+    await loadRoutes();
+    renderRoutesGrid();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// Initialization on DOM Load
+document.addEventListener('DOMContentLoaded', async () => {
+  // Apply stored theme if any
+  const savedTheme = localStorage.getItem('cmsr_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  // Authenticate as coordinator by default for immediate evaluation
   if (!state.user || !state.token) {
     await quickLogin('coordinator');
   } else {
@@ -621,7 +823,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   checkHealth();
   setInterval(checkHealth, 30000);
 
-  // Load initial data
+  // Load all data
   await loadAllData();
 });
-

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="favShield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="favRoute" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <!-- Protective Shield -->
+  <path d="M16,2 C23,2 28,5.5 28,12 C28,21 20,27.5 16,30 C12,27.5 4,21 4,12 C4,5.5 9,2 16,2 Z" fill="url(#favShield)" />
+  <!-- Ribbon Route Pathway -->
+  <path d="M10,24 C11.5,20 20.5,19 20,15 C19.5,11 13,11 15.5,7" fill="none" stroke="url(#favRoute)" stroke-width="2.2" stroke-linecap="round" />
+  <!-- Waypoint Beacon -->
+  <circle cx="15.5" cy="7" r="2.2" fill="#ffffff" />
+  <!-- Chaperone Dot -->
+  <circle cx="14" cy="14" r="1.5" fill="#fef08a" />
+</svg>
+
